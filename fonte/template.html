@@ -537,10 +537,10 @@ body:has(#pront:not([hidden])) .wrap{max-width:1760px}
 }
 /* painel lateral do caso (trilho escuro em sanfona) */
 #prontSide{display:block}
-.rail{background:#0C1F1E;color:#C9D6D4;border-radius:14px;padding:10px;display:grid;gap:4px;box-shadow:0 10px 30px -18px rgba(0,0,0,.6)}
+.rail{background:#0C1F1E;color:#C9D6D4;border-radius:14px;padding:10px;display:grid;gap:4px;align-content:start;grid-template-columns:minmax(0,1fr);box-shadow:0 10px 30px -18px rgba(0,0,0,.6)}
 :root[data-theme="dark"] .rail{background:#081312;border:1px solid #17302C}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .rail{background:#081312;border:1px solid #17302C}}
-.rail-top{display:grid;gap:8px;padding:4px 4px 10px;border-bottom:1px solid #1E3C38;margin-bottom:4px}
+.rail-top{padding:2px 6px 10px;border-bottom:1px solid #1E3C38;margin-bottom:4px}
 .rail-tit{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#7F9693}
 .rail-icons{display:flex;flex-wrap:wrap;gap:3px}
 .rail-qi{position:relative;width:34px;height:34px;display:grid;place-items:center;border-radius:9px;border:0;background:#13302D;color:#C9D6D4}
@@ -562,13 +562,30 @@ body:has(#pront:not([hidden])) .wrap{max-width:1760px}
 .rail-chev{width:16px;height:16px;flex:none;opacity:.6;transition:rotate .15s}
 .rail-it.open .rail-chev{rotate:180deg}
 .rail-body{margin:6px 2px 8px;padding:4px;border-radius:10px;background:var(--bg);color:var(--fg);display:grid;gap:10px}
-.rail-body>.paper{border:0;box-shadow:none}
+.rail-body>.paper{border:0;box-shadow:none;min-width:0}
+.rail-body,.rail-body *{min-width:0}.rail-body select,.rail-body input,.rail-body textarea{max-width:100%}.rail-body .prow,.rail-body .tgrid{flex-wrap:wrap}
+.rail-body .chips-row{flex-wrap:wrap}.rail-body .chip{white-space:normal;height:auto;min-height:30px;max-width:100%;text-align:left;line-height:1.3;padding-block:5px}
 .rail-body .paper-head>b:first-child{display:none}
 .rail-body .paper-head:not(:has(button)):not(:has(.hint)){display:none}
 .rail-body .tools-paper .seg-tools{display:none}
 .rail-body .chat-body{max-height:52vh;overflow:auto}
 .rail-body .ask-dock{position:static}
-@media (max-width:860px){.rail-qi::after{display:none}}
+@media (min-width:861px){
+  body:has(#pront:not([hidden])) .wrap{max-width:none}
+  .pront{grid-template-columns:minmax(0,1fr) 330px!important;gap:16px;max-width:none;margin-right:calc(-1 * max(16px, env(safe-area-inset-right,0px)))}
+  #prontSide{top:calc(env(safe-area-inset-top,0px) + var(--top-h,64px));height:calc(100vh - var(--top-h,64px));max-height:none;margin-top:-16px;padding:0;overflow:auto}
+  #prontSide .rail{min-height:100%;border-radius:0;box-shadow:none;border-left:1px solid #1E3C38;padding:14px 10px}
+}
+@media (min-width:861px) and (max-width:1279px){.pront{grid-template-columns:minmax(0,1fr) 300px!important;gap:14px}}
+@media (min-width:1500px){.pront{grid-template-columns:minmax(0,1fr) 360px!important}}
+.img-card{overflow:hidden}
+.img-h{width:100%;display:flex;align-items:center;gap:10px;min-height:52px;padding:0 16px;border:0;background:transparent;color:var(--fg);font:inherit;font-weight:600;font-size:15px;text-align:left}
+.img-h .rail-ico{width:19px;height:19px;color:var(--accent);flex:none}
+.img-h small{flex:1;font-weight:400}
+.img-card.open .img-h{border-bottom:1px solid var(--line)}
+.img-card.open .rail-chev{rotate:180deg}
+.img-card .tools-paper{border:0;box-shadow:none}
+.img-card .tools-paper>.paper-head,.img-card .seg-tools{display:none}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 
@@ -2245,6 +2262,9 @@ function renderPront(){
       </div></div>`;
     if (pr.jus != null) { h += pbox('Justificativa · ' + esc(jusLabel()), 'pJ', v('pJ', pr.jus), 120); h += copyBar; }
   }
+  // pedido de exame de imagem: fica na coluna central, mas segue a regra do painel (um aberto por vez)
+  { const ab = ui.painel === 'imagem';
+    h += `<div class="paper img-card ${ab ? 'open' : ''}" id="painel-imagem"><button class="img-h" data-painel="imagem" aria-expanded="${ab}">${icoP('imagem')}<span>Pedido de exame de imagem</span><small class="hint">Monta o pedido com a indicação, sem IA</small><svg class="rail-chev" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg></button>${ab ? (pr.tool = 'imagem', htmlFerramentas()) : ''}</div>`; }
   if (rxIt) {
     const P = rxPartes(rxIt, Math.min(pr.rxAba, rxIt.abas.length - 1)); const f = t => qtd ? t : semQtd(t);
     const nm = `${esc(rxIt.nome)}${rxIt.abas.length > 1 ? ' · ' + esc(rxIt.abas[pr.rxAba]?.nome || '') : ''}`;
@@ -2705,7 +2725,7 @@ async function iaChamada(input, opts, stream){
       body:JSON.stringify({cofre:store.cofre, messages, tier:opts.modelTier || 'default', nivel:opts.nivel || '', stream})});
     if (!r.ok) {
       const j = await r.json().catch(() => ({}));
-      const err = new Error(j.erro || ('IA indisponível (' + r.status + ')'));
+      const err = new Error(r.status === 403 && /chave/i.test(j.erro || '') ? 'A IA não reconheceu o seu código. Abra o site pelo seu link pessoal (com o código depois do #). Se for a prévia de teste, cole o link da prévia seguido do mesmo código.' : (j.erro || ('IA indisponível (' + r.status + ')')));
       err.tentarSemStream = stream && ![400, 401, 403].includes(r.status); err.repetir = r.status >= 500 && !j.erro; throw err;
     }
     const tipo = r.headers.get('content-type') || '';
@@ -3383,7 +3403,6 @@ function painelItens(){
     {k:'pend', l:'Pendências', d:'O que falta: exames, pareceres, reavaliações', n: nPend || '', html: htmlPend},
     {k:'reav', l:'Reavaliação', d:'Texto da reavaliação e evolução do paciente', n: nEv || '', html: ferr('reav')},
     {k:'exames', l:'Resultados de exames', d:'Digite ou cole os resultados para a evolução', html: ferr('exames')},
-    {k:'imagem', l:'Pedido de imagem', d:'Monta o pedido de exame de imagem com a indicação', html: ferr('imagem')},
     {k:'escores', l:'Escores', d:'CURB-65, HEART, Wells, qSOFA e outros', html: ferr('escores')}];
   if (aiSample) L.push(
     {k:'decisao', l:'Decisão', d:'Destino sugerido e próximos exames', n: pr.decisao ? '●' : '', nCls: pr.decisao ? 'nv-' + (DESTINOS[pr.decisao.destino]?.nv || '') : '', html: htmlDecisao},
@@ -3395,10 +3414,10 @@ function renderSide(){
   const el = $('#prontSide'); if (!el) return;
   const st = el.scrollTop, itens = painelItens();
   let aberto = ui.painel === undefined ? 'pend' : ui.painel;
-  if (aberto && !itens.some(x => x.k === aberto)) aberto = 'pend';
+  if (aberto && aberto !== 'imagem' && !itens.some(x => x.k === aberto)) aberto = 'pend';
   el.classList.remove('chatmode');
   el.innerHTML = `<div class="rail" role="region" aria-label="Ferramentas do caso">
-    <div class="rail-top"><span class="rail-tit">Ferramentas do caso</span><div class="rail-icons">${itens.map(x => `<button class="rail-qi ${x.k === aberto ? 'on' : ''}" data-painel="${x.k}" aria-label="${x.l}" data-tip="${x.l}">${icoP(x.k)}${x.n ? `<i class="rail-dot ${x.nCls || ''}"></i>` : ''}</button>`).join('')}</div></div>
+    <div class="rail-top"><span class="rail-tit">Ferramentas do caso</span></div>
     ${itens.map(x => `<section class="rail-it ${x.k === aberto ? 'open' : ''}" id="painel-${x.k}">
       <button class="rail-btn" data-painel="${x.k}" aria-expanded="${x.k === aberto}" title="${esc(x.d)}">${icoP(x.k)}<span class="rail-l">${x.l}</span>${x.n ? `<span class="rail-n ${x.nCls || ''}">${x.n}</span>` : ''}<svg class="rail-chev" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg></button>
       ${x.k === aberto ? `<div class="rail-body">${x.html()}</div>` : ''}</section>`).join('')}
@@ -3608,7 +3627,12 @@ document.addEventListener('click', e => {
   if (b.dataset.chatcopy) { const m = pr.chat?.[+b.dataset.chatcopy]; if (m) copy(m.content, 'Resposta copiada'); }
   if (b.dataset.chatlimpar) { pr.chat = []; renderSide(); }
   if (b.dataset.sidetab) abrirPainel(b.dataset.sidetab === 'chat' ? 'chat' : 'decisao');
-  if (b.dataset.painel) { const k = b.dataset.painel; if (b.classList.contains('rail-btn') && ui.painel === k) { ui.painel = null; lsSet('plantaorx:ui', ui); renderSide(); } else abrirPainel(k, !b.classList.contains('rail-btn')); }
+  if (b.dataset.painel) {
+    const k = b.dataset.painel, antes = ui.painel, alterna = b.classList.contains('rail-btn') || b.classList.contains('img-h');
+    if (alterna && antes === k) { ui.painel = null; lsSet('plantaorx:ui', ui); antes === 'imagem' ? renderPront() : renderSide(); }
+    else if (k === 'imagem' || antes === 'imagem') { ui.painel = k; lsSet('plantaorx:ui', ui); renderPront(); if (!alterna || k === 'imagem') document.getElementById('painel-' + k)?.scrollIntoView({block:'nearest', behavior:'smooth'}); }
+    else abrirPainel(k, !alterna);
+  }
   if (b.dataset.passagem1) abrirPassagem(pr);
   if (b.dataset.saida) abrirSaida(b.dataset.saida);
   if (b.dataset.docpac) abrirDocsPaciente();
