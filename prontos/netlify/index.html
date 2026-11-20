@@ -494,7 +494,16 @@ body:has(#pront:not([hidden])) .wrap{max-width:1760px}
 .ap.crit .ap-n{border-color:var(--warn-fg);color:var(--warn-fg)}
 .ap p{margin:4px 0 0;line-height:1.45}
 .ap .ap-s{color:var(--fg)}
-.apont-acts{display:flex;justify-content:flex-end}
+.apont-acts{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:8px}
+.ap.feita{opacity:.75}
+.ap-feita{margin:6px 0 0;color:var(--ok);font-weight:600}
+.ap-diff{margin-top:8px}.ap-diff summary{cursor:pointer;color:var(--accent);font-weight:600}
+.ap-dd{display:grid;gap:4px;margin-top:8px}.ap-dd small{color:var(--muted);font-weight:600}
+.ap-de,.ap-para{margin:0;padding:8px 10px;border-radius:6px;font-family:var(--f-mono);font-size:12.5px;white-space:pre-wrap;word-break:break-word}
+.ap-de{background:var(--warn-bg);color:var(--warn-fg);text-decoration:line-through;text-decoration-color:rgba(163,38,27,.4)}
+.ap-para{background:var(--ok-bg);color:var(--ok)}
+.ap-acts{display:flex;justify-content:flex-end;margin-top:8px}
+.btn.sm{height:34px;padding:0 12px;font-size:13.5px}
 .revbar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;border-radius:var(--r);background:var(--accent-soft);border:1px solid var(--accent)}
 .revbar-t{display:grid;gap:2px}.revbar-t span{font-size:13px;color:var(--muted)}
 .revbar-acts{display:flex;flex-wrap:wrap;gap:6px}
@@ -583,64 +592,387 @@ body:has(#pront:not([hidden])) .wrap{max-width:1760px}
   "data": "2026-11-20",
   "itens": {
     "tromboembolismo-pulmonar-tep": [
-      {"nivel": "critico", "titulo": "Rivaroxabana e enoxaparina aparecem juntas", "texto": "Nas abas 'Baixo risco' e 'Risco intermediário', a rivaroxabana (item 1/2) e a enoxaparina (item seguinte) estão listadas como itens do PS sem um 'OU' entre elas. Quem copiar a prescrição inteira pode fazer as duas, com risco de dupla anticoagulação.", "sugestao": "Separar com 'OU' (são alternativas), como já existe antes da heparina não fracionada."},
-      {"nivel": "critico", "titulo": "Enoxaparina em dose fixa de 80 mg", "texto": "A dose terapêutica é por peso: 1 mg/kg de 12/12 horas (ou 1,5 mg/kg 1 vez ao dia). 80 mg 'dose única' ou '1 vez ao dia' só equivale a 1 mg/kg num paciente de 80 kg e, 1 vez ao dia, fica abaixo da dose terapêutica.", "sugestao": "Escrever 'Aplicar 1 mg/kg, via subcutânea, de 12/12 horas (ex.: 70 kg = 70 mg)'. Se ClCr < 30 mL/min: 1 mg/kg 1 vez ao dia. Rivaroxabana: evitar se ClCr < 15 mL/min (cautela entre 15 e 30)."}
+      {
+        "nivel": "critico",
+        "titulo": "Rivaroxabana e enoxaparina aparecem juntas",
+        "texto": "Nas abas 'Baixo risco' e 'Risco intermediário', a rivaroxabana (item 1/2) e a enoxaparina (item seguinte) estão listadas como itens do PS sem um 'OU' entre elas. Quem copiar a prescrição inteira pode fazer as duas, com risco de dupla anticoagulação.",
+        "sugestao": "Separar com 'OU' (são alternativas), como já existe antes da heparina não fracionada.",
+        "correcao": [
+          {
+            "aba": "Baixo risco",
+            "de": "Administrar 1 comprimido, via oral, de 12/12 horas, junto com alimentos.\n\nUSO SUBCUTÂNEO\n\n2) Enoxaparina",
+            "para": "Administrar 1 comprimido, via oral, de 12/12 horas, junto com alimentos.\n\nOU\nUSO SUBCUTÂNEO\n\n2) Enoxaparina"
+          },
+          {
+            "aba": "Risco intermediário",
+            "de": "Administrar 1 comprimido, via oral, de 12/12 horas, junto com alimentos.\n\nUSO SUBCUTÂNEO\n\n3) Enoxaparina",
+            "para": "Administrar 1 comprimido, via oral, de 12/12 horas, junto com alimentos.\n\nOU\nUSO SUBCUTÂNEO\n\n3) Enoxaparina"
+          }
+        ]
+      },
+      {
+        "nivel": "critico",
+        "titulo": "Enoxaparina em dose fixa de 80 mg",
+        "texto": "A dose terapêutica é por peso: 1 mg/kg de 12/12 horas (ou 1,5 mg/kg 1 vez ao dia). 80 mg 'dose única' ou '1 vez ao dia' só equivale a 1 mg/kg num paciente de 80 kg e, 1 vez ao dia, fica abaixo da dose terapêutica.",
+        "sugestao": "Escrever 'Aplicar 1 mg/kg, via subcutânea, de 12/12 horas (ex.: 70 kg = 70 mg)'. Se ClCr < 30 mL/min: 1 mg/kg 1 vez ao dia. Rivaroxabana: evitar se ClCr < 15 mL/min (cautela entre 15 e 30).",
+        "correcao": [
+          {
+            "aba": "Baixo risco",
+            "de": "Aplicar 80 mg, via subcutânea, dose única.",
+            "para": "Aplicar 1 mg/kg, via subcutânea (ex.: 70 kg = 70 mg). Manter de 12/12 horas."
+          },
+          {
+            "aba": "Baixo risco",
+            "de": "Aplicar 80 mg, via subcutânea, 1 vez ao dia.",
+            "para": "Aplicar 1 mg/kg, via subcutânea, 1 vez ao dia (ex.: 70 kg = 70 mg)."
+          },
+          {
+            "aba": "Risco intermediário",
+            "de": "Aplicar 80 mg, via subcutânea, dose única.",
+            "para": "Aplicar 1 mg/kg, via subcutânea (ex.: 70 kg = 70 mg). Manter de 12/12 horas."
+          },
+          {
+            "aba": "Risco intermediário",
+            "de": "Aplicar 80 mg, via subcutânea, 1 vez ao dia.",
+            "para": "Aplicar 1 mg/kg, via subcutânea, 1 vez ao dia (ex.: 70 kg = 70 mg)."
+          }
+        ]
+      }
     ],
     "trombose-venosa-profunda-tvp": [
-      {"nivel": "critico", "titulo": "Rivaroxabana e enoxaparina aparecem juntas", "texto": "A rivaroxabana (item 1) e a enoxaparina (item 2) estão no mesmo bloco 'NO PS' sem 'OU'. Copiado inteiro, o texto leva às duas, com risco de dupla anticoagulação.", "sugestao": "Separar com 'OU'."},
-      {"nivel": "critico", "titulo": "Enoxaparina em dose fixa de 80 mg", "texto": "A dose terapêutica é 1 mg/kg de 12/12 horas (ou 1,5 mg/kg 1 vez ao dia). 80 mg fixos só servem para cerca de 80 kg e, 1 vez ao dia, ficam abaixo da dose terapêutica.", "sugestao": "Escrever a dose por peso (1 mg/kg de 12/12 horas). Se ClCr < 30 mL/min: 1 mg/kg 1 vez ao dia."}
+      {
+        "nivel": "critico",
+        "titulo": "Rivaroxabana e enoxaparina aparecem juntas",
+        "texto": "A rivaroxabana (item 1) e a enoxaparina (item 2) estão no mesmo bloco 'NO PS' sem 'OU'. Copiado inteiro, o texto leva às duas, com risco de dupla anticoagulação.",
+        "sugestao": "Separar com 'OU'.",
+        "correcao": [
+          {
+            "aba": "Receita",
+            "de": "Administrar 1 comprimido, via oral, de 12/12 horas, junto com alimentos.\n\nUSO SUBCUTÂNEO\n\n2) Enoxaparina",
+            "para": "Administrar 1 comprimido, via oral, de 12/12 horas, junto com alimentos.\n\nOU\nUSO SUBCUTÂNEO\n\n2) Enoxaparina"
+          }
+        ]
+      },
+      {
+        "nivel": "critico",
+        "titulo": "Enoxaparina em dose fixa de 80 mg",
+        "texto": "A dose terapêutica é 1 mg/kg de 12/12 horas (ou 1,5 mg/kg 1 vez ao dia). 80 mg fixos só servem para cerca de 80 kg e, 1 vez ao dia, ficam abaixo da dose terapêutica.",
+        "sugestao": "Escrever a dose por peso (1 mg/kg de 12/12 horas). Se ClCr < 30 mL/min: 1 mg/kg 1 vez ao dia.",
+        "correcao": [
+          {
+            "aba": "Receita",
+            "de": "Aplicar 80 mg, via subcutânea, dose única.",
+            "para": "Aplicar 1 mg/kg, via subcutânea (ex.: 70 kg = 70 mg). Manter de 12/12 horas."
+          },
+          {
+            "aba": "Receita",
+            "de": "Aplicar 80 mg, via subcutânea, 1 vez ao dia.",
+            "para": "Aplicar 1 mg/kg, via subcutânea, 1 vez ao dia (ex.: 70 kg = 70 mg)."
+          }
+        ]
+      }
     ],
     "hipocalemia": [
-      {"nivel": "critico", "titulo": "KCl 19,1% não tem 2 mEq/mL", "texto": "O cloreto de potássio 19,1% tem cerca de 2,56 mEq/mL (ampola de 10 mL = 25,6 mEq). O rótulo '(2 mEq/mL)' faz quem calcula pelo volume subestimar a dose: '40 mL' são cerca de 102 mEq, e não 80 mEq.", "sugestao": "Trocar para '19,1% (2,56 mEq/mL; ampola de 10 mL = 25,6 mEq)' e escrever a dose em mEq e em mL."},
-      {"nivel": "critico", "titulo": "Reposição acima do limite de veia periférica", "texto": "K+ < 2,5: '40 mL em 500 mL em 4 horas' dá cerca de 190 mEq/L, a 25 mEq/h. O habitual em veia periférica é até 10 mEq/h e concentração de até 40 a 60 mEq/L. Acima disso, só com acesso central, bomba de infusão e monitor.", "sugestao": "Indicar a via ('acesso central, em bomba, com monitorização') ou reduzir para até 10 mEq/h em periférica."},
-      {"nivel": "atencao", "titulo": "Bólus de potássio na arritmia", "texto": "'5 mL em 100 mL em 15 a 30 minutos' (cerca de 13 mEq, até 50 mEq/h) é reposição de resgate em arritmia ou paralisia. É aceitável só em acesso central e com monitorização contínua.", "sugestao": "Acrescentar 'somente em acesso central, com monitorização contínua'."}
+      {
+        "nivel": "critico",
+        "titulo": "KCl 19,1% não tem 2 mEq/mL",
+        "texto": "O cloreto de potássio 19,1% tem cerca de 2,56 mEq/mL (ampola de 10 mL = 25,6 mEq). O rótulo '(2 mEq/mL)' faz quem calcula pelo volume subestimar a dose: '40 mL' são cerca de 102 mEq, e não 80 mEq.",
+        "sugestao": "Trocar para '19,1% (2,56 mEq/mL; ampola de 10 mL = 25,6 mEq)' e escrever a dose em mEq e em mL.",
+        "correcao": [
+          {
+            "aba": "No PS",
+            "de": "Cloreto de Potássio 19,1% (2 mEq/mL)",
+            "para": "Cloreto de Potássio 19,1% (2,56 mEq/mL; ampola de 10 mL = 25,6 mEq)",
+            "todas": true
+          }
+        ]
+      },
+      {
+        "nivel": "critico",
+        "titulo": "Reposição acima do limite de veia periférica",
+        "texto": "K+ < 2,5: '40 mL em 500 mL em 4 horas' dá cerca de 190 mEq/L, a 25 mEq/h. O habitual em veia periférica é até 10 mEq/h e concentração de até 40 a 60 mEq/L. Acima disso, só com acesso central, bomba de infusão e monitor.",
+        "sugestao": "Indicar a via ('acesso central, em bomba, com monitorização') ou reduzir para até 10 mEq/h em periférica.",
+        "correcao": [
+          {
+            "aba": "No PS",
+            "de": "[Isofarma®] ------------------------ 04 ampolas\nDiluir 40 mL em 500 mL de SF 0,9%.\nInfundir em 4 horas.",
+            "para": "[Isofarma®] ------------------------ 02 ampolas\nAdministrar 40 mEq (cerca de 16 mL).\nEm veia periférica: diluir em 1.000 mL de SF 0,9% e infundir em 4 horas (até 10 mEq/h).\nEm acesso central, com bomba e monitorização: até 20 mEq/h.\nRepetir conforme potássio sérico."
+          }
+        ]
+      },
+      {
+        "nivel": "atencao",
+        "titulo": "Bólus de potássio na arritmia",
+        "texto": "'5 mL em 100 mL em 15 a 30 minutos' (cerca de 13 mEq, até 50 mEq/h) é reposição de resgate em arritmia ou paralisia. É aceitável só em acesso central e com monitorização contínua.",
+        "sugestao": "Acrescentar 'somente em acesso central, com monitorização contínua'.",
+        "correcao": [
+          {
+            "aba": "No PS",
+            "de": "Diluir 5 mL em 100 mL de SF 0,9%.\nInfundir em 15 a 30 minutos.",
+            "para": "Somente em acesso central, com monitorização contínua.\nDiluir 4 mL (10 mEq) em 100 mL de SF 0,9%.\nInfundir em 30 a 60 minutos."
+          }
+        ]
+      }
     ],
     "estado-hiperosmolar-hiperglicemico-ehh": [
-      {"nivel": "critico", "titulo": "KCl 19,1% não tem 2 mEq/mL", "texto": "O rótulo '(2 mEq/mL)' está errado: o 19,1% tem cerca de 2,56 mEq/mL. As doses deste item estão em mEq, o que está certo, mas quem converter para mL pelo rótulo erra.", "sugestao": "Trocar para '19,1% (2,56 mEq/mL; ampola de 10 mL = 25,6 mEq)'."}
+      {
+        "nivel": "critico",
+        "titulo": "KCl 19,1% não tem 2 mEq/mL",
+        "texto": "O rótulo '(2 mEq/mL)' está errado: o 19,1% tem cerca de 2,56 mEq/mL. As doses deste item estão em mEq, o que está certo, mas quem converter para mL pelo rótulo erra.",
+        "sugestao": "Trocar para '19,1% (2,56 mEq/mL; ampola de 10 mL = 25,6 mEq)'.",
+        "correcao": [
+          {
+            "aba": "No PS",
+            "de": "Cloreto de Potássio 19,1% (2 mEq/mL)",
+            "para": "Cloreto de Potássio 19,1% (2,56 mEq/mL; ampola de 10 mL = 25,6 mEq)",
+            "todas": true
+          }
+        ]
+      }
     ],
     "crise-aguda-de-gota": [
-      {"nivel": "atencao", "titulo": "Colchicina 0,6 mg não existe no Brasil", "texto": "No Brasil a colchicina é vendida em 0,5 mg e 1 mg; a de 0,6 mg é americana. O esquema brasileiro para crise é 1 mg e, após 1 hora, 0,5 mg (total de 1,5 mg no 1º dia).", "sugestao": "Colchicina 0,5 mg: tomar 2 comprimidos agora e 1 comprimido após 1 hora."}
+      {
+        "nivel": "atencao",
+        "titulo": "Colchicina 0,6 mg não existe no Brasil",
+        "texto": "No Brasil a colchicina é vendida em 0,5 mg e 1 mg; a de 0,6 mg é americana. O esquema brasileiro para crise é 1 mg e, após 1 hora, 0,5 mg (total de 1,5 mg no 1º dia).",
+        "sugestao": "Colchicina 0,5 mg: tomar 2 comprimidos agora e 1 comprimido após 1 hora.",
+        "correcao": [
+          {
+            "aba": "Receita",
+            "de": "Colchicina 0,6 mg [Colchis®] ------------------------ 03 comprimidos\nTomar 2 comprimidos, via oral, AGORA e 1 comprimido após 1 hora.",
+            "para": "Colchicina 0,5 mg [Colchis®] ------------------------ 03 comprimidos\nTomar 2 comprimidos (1 mg), via oral, AGORA e 1 comprimido (0,5 mg) após 1 hora."
+          }
+        ]
+      }
     ],
     "protocolo-de-analgesia": [
-      {"nivel": "atencao", "titulo": "Cetorolaco EV: dose máxima acima da bula brasileira", "texto": "A bula do Toragesic no Brasil limita a dose a 90 mg/dia (abaixo de 65 anos) e 60 mg/dia (65 anos ou mais, menos de 50 kg ou insuficiência renal). O texto diz '120 mg por dia' e 'pode repetir de 6/6 horas' (30 mg 4 vezes = 120 mg).", "sugestao": "Pode repetir de 8/8 horas; máximo de 90 mg/dia (60 mg/dia em idosos)."},
-      {"nivel": "atencao", "titulo": "Diclofenaco injetável por via endovenosa", "texto": "Na maioria das bulas brasileiras, o diclofenaco sódico 75 mg/3 mL é só para uso intramuscular. Diluído em 100 mL e infundido na veia, o uso pode ficar fora da bula do produto que o hospital tem.", "sugestao": "Conferir a bula do produto do hospital. Se for só IM: 'Aplicar 75 mg, via intramuscular profunda (glúteo)'."}
+      {
+        "nivel": "atencao",
+        "titulo": "Cetorolaco EV: dose máxima acima da bula brasileira",
+        "texto": "A bula do Toragesic no Brasil limita a dose a 90 mg/dia (abaixo de 65 anos) e 60 mg/dia (65 anos ou mais, menos de 50 kg ou insuficiência renal). O texto diz '120 mg por dia' e 'pode repetir de 6/6 horas' (30 mg 4 vezes = 120 mg).",
+        "sugestao": "Pode repetir de 8/8 horas; máximo de 90 mg/dia (60 mg/dia em idosos).",
+        "correcao": [
+          {
+            "aba": "AINEs no PS",
+            "de": "Pode repetir de 6/6 horas.\nDose máxima:\n- Adultos menores de 65 anos: 120 mg por dia.",
+            "para": "Pode repetir de 8/8 horas.\nDose máxima:\n- Adultos menores de 65 anos: 90 mg por dia."
+          }
+        ]
+      },
+      {
+        "nivel": "atencao",
+        "titulo": "Diclofenaco injetável por via endovenosa",
+        "texto": "Na maioria das bulas brasileiras, o diclofenaco sódico 75 mg/3 mL é só para uso intramuscular. Diluído em 100 mL e infundido na veia, o uso pode ficar fora da bula do produto que o hospital tem.",
+        "sugestao": "Conferir a bula do produto do hospital. Se for só IM: 'Aplicar 75 mg, via intramuscular profunda (glúteo)'.",
+        "correcao": [
+          {
+            "aba": "AINEs no PS",
+            "de": "Aplicar 75 mg, via endovenosa.\nDiluir em 100 mL de SF 0,9% ou SG 5%.\nInfundir em 30 minutos.",
+            "para": "Aplicar 75 mg, via intramuscular profunda (glúteo)."
+          }
+        ]
+      }
     ],
     "crise-algica-anemia-falciforme": [
-      {"nivel": "atencao", "titulo": "Cetorolaco EV: dose máxima acima da bula brasileira", "texto": "O texto diz 'Dose máxima: 120 mg/dia'. A bula brasileira limita a 90 mg/dia (60 mg em idosos, menos de 50 kg ou insuficiência renal).", "sugestao": "Máximo de 90 mg/dia."}
+      {
+        "nivel": "atencao",
+        "titulo": "Cetorolaco EV: dose máxima acima da bula brasileira",
+        "texto": "O texto diz 'Dose máxima: 120 mg/dia'. A bula brasileira limita a 90 mg/dia (60 mg em idosos, menos de 50 kg ou insuficiência renal).",
+        "sugestao": "Máximo de 90 mg/dia.",
+        "correcao": [
+          {
+            "aba": "No PS",
+            "de": "Dose máxima: 120 mg/dia.",
+            "para": "Dose máxima: 90 mg/dia (60 mg/dia em idosos, peso abaixo de 50 kg ou insuficiência renal)."
+          }
+        ]
+      }
     ],
     "enxaqueca-crise": [
-      {"nivel": "atencao", "titulo": "Clorpromazina: 2 gotas (2 mg) por via oral", "texto": "Na aba 'No PS', a clorpromazina 40 mg/mL está como '2 gotas, via oral' (1 gota = 1 mg). Essa dose não tem efeito na crise de enxaqueca. No PS, o uso descrito é 0,1 mg/kg EV (máximo de 25 mg), diluída e lenta, com hidratação e controle de PA.", "sugestao": "Conferir a intenção. Se for o uso no PS: 'Clorpromazina 25 mg/5 mL: 0,1 mg/kg EV diluída em 100 mL de SF 0,9% em 30 minutos'."}
+      {
+        "nivel": "atencao",
+        "titulo": "Clorpromazina: 2 gotas (2 mg) por via oral",
+        "texto": "Na aba 'No PS', a clorpromazina 40 mg/mL está como '2 gotas, via oral' (1 gota = 1 mg). Essa dose não tem efeito na crise de enxaqueca. No PS, o uso descrito é 0,1 mg/kg EV (máximo de 25 mg), diluída e lenta, com hidratação e controle de PA.",
+        "sugestao": "Conferir a intenção. Se for o uso no PS: 'Clorpromazina 25 mg/5 mL: 0,1 mg/kg EV diluída em 100 mL de SF 0,9% em 30 minutos'.",
+        "correcao": [
+          {
+            "aba": "No PS",
+            "de": "Clorpromazina 40 mg/mL [Amplictil®] ------------------------ 01 frasco\nTomar 2 gotas, via oral.",
+            "para": "Clorpromazina 25 mg/5 mL [Amplictil®] ------------------------ 01 ampola\nAplicar 0,1 mg/kg (máximo de 25 mg), via endovenosa, diluída em 100 mL de SF 0,9%, em 30 minutos.\nHidratar com SF 0,9% 500 mL e medir a PA antes e depois (risco de hipotensão)."
+          }
+        ]
+      }
     ],
     "lombalgia-aguda": [
-      {"nivel": "atencao", "titulo": "Ibuprofeno EV com marca Alivium®", "texto": "O Alivium® no Brasil é oral (comprimidos e gotas); não há apresentação endovenosa com essa marca. A opção 'Ibuprofeno EV 400-800 mg' pode não estar disponível no hospital.", "sugestao": "Confirmar a disponibilidade. Se não houver, retirar a opção."}
+      {
+        "nivel": "atencao",
+        "titulo": "Ibuprofeno EV com marca Alivium®",
+        "texto": "O Alivium® no Brasil é oral (comprimidos e gotas); não há apresentação endovenosa com essa marca. A opção 'Ibuprofeno EV 400-800 mg' pode não estar disponível no hospital.",
+        "sugestao": "Confirmar a disponibilidade. Se não houver, retirar a opção."
+      }
     ],
     "insonia": [
-      {"nivel": "atencao", "titulo": "Zolpidem: receita e dose", "texto": "Desde 2024 a Anvisa exige Notificação de Receita B (azul) para o zolpidem em qualquer dose. Para mulheres e idosos, a dose recomendada é 5 mg.", "sugestao": "Indicar 'Notificação de Receita B' e '5 mg em mulheres e idosos'."}
+      {
+        "nivel": "atencao",
+        "titulo": "Zolpidem: receita e dose",
+        "texto": "Desde 2024 a Anvisa exige Notificação de Receita B (azul) para o zolpidem em qualquer dose. Para mulheres e idosos, a dose recomendada é 5 mg.",
+        "sugestao": "Indicar 'Notificação de Receita B' e '5 mg em mulheres e idosos'.",
+        "correcao": [
+          {
+            "aba": "Receita",
+            "de": "Zolpidem 10 mg [Stilnox®] ------------------------ 07 comprimidos\nTomar 1 comprimido, via oral, ao deitar, por até 7 dias.",
+            "para": "Zolpidem 10 mg [Stilnox®] ------------------------ 07 comprimidos\nNotificação de Receita B.\nTomar 1 comprimido, via oral, ao deitar, por até 7 dias. Mulheres e idosos: ½ comprimido (5 mg)."
+          }
+        ]
+      }
     ],
     "cistite-nao-complicada-mulher": [
-      {"nivel": "atencao", "titulo": "Fosfomicina: segunda dose", "texto": "Na cistite não complicada, a bula indica dose única de 3 g. O texto pede para repetir 1 envelope após 24 horas.", "sugestao": "Retirar a segunda dose, ou indicar quando ela se aplica."}
+      {
+        "nivel": "atencao",
+        "titulo": "Fosfomicina: segunda dose",
+        "texto": "Na cistite não complicada, a bula indica dose única de 3 g. O texto pede para repetir 1 envelope após 24 horas.",
+        "sugestao": "Retirar a segunda dose, ou indicar quando ela se aplica.",
+        "correcao": [
+          {
+            "aba": "Receita",
+            "de": "FOSFOMICINA TROMETAMOL 3 g --------------------- 2 envelopes",
+            "para": "FOSFOMICINA TROMETAMOL 3 g --------------------- 1 envelope"
+          },
+          {
+            "aba": "Receita",
+            "de": "após esvaziar a bexiga.\nRepetir 1 envelope após 24 horas.",
+            "para": "após esvaziar a bexiga."
+          }
+        ]
+      }
     ],
     "doenca-do-refluxo-gastroesofagico": [
-      {"nivel": "atencao", "titulo": "Domperidona por até 2 semanas", "texto": "Pelo risco de arritmia, a recomendação europeia (EMA), seguida em alertas da Anvisa, é no máximo 30 mg/dia (10 mg de 8/8 horas) por até 7 dias.", "sugestao": "Trocar 'por até 2 semanas' por 'por até 7 dias'."},
-      {"nivel": "atencao", "titulo": "Omeprazol 40 mg de 12/12 horas", "texto": "A dose habitual na DRGE é 20 a 40 mg 1 vez ao dia; 40 mg 2 vezes ao dia é dose de doença refratária.", "sugestao": "Conferir se a intenção é a dose dobrada."}
+      {
+        "nivel": "atencao",
+        "titulo": "Domperidona por até 2 semanas",
+        "texto": "Pelo risco de arritmia, a recomendação europeia (EMA), seguida em alertas da Anvisa, é no máximo 30 mg/dia (10 mg de 8/8 horas) por até 7 dias.",
+        "sugestao": "Trocar 'por até 2 semanas' por 'por até 7 dias'.",
+        "correcao": [
+          {
+            "aba": "Receita",
+            "de": "Domperidona 10 mg ------------------------ 30 comprimidos\nTomar 1 comprimido, via oral, 15 a 30 minutos antes das principais refeições, de 8/8 horas, por até 2 semanas.",
+            "para": "Domperidona 10 mg ------------------------ 21 comprimidos\nTomar 1 comprimido, via oral, 15 a 30 minutos antes das principais refeições, de 8/8 horas, por até 7 dias."
+          }
+        ]
+      },
+      {
+        "nivel": "atencao",
+        "titulo": "Omeprazol 40 mg de 12/12 horas",
+        "texto": "A dose habitual na DRGE é 20 a 40 mg 1 vez ao dia; 40 mg 2 vezes ao dia é dose de doença refratária.",
+        "sugestao": "Conferir se a intenção é a dose dobrada.",
+        "correcao": [
+          {
+            "aba": "Receita",
+            "de": "Omeprazol 40 mg ------------------------ 56 cápsulas\nTomar 1 cápsula, via oral, 30 minutos antes do café da manhã.\nTomar 1 cápsula, via oral, 30 minutos antes do jantar.",
+            "para": "Omeprazol 40 mg ------------------------ 28 cápsulas\nTomar 1 cápsula, via oral, 30 minutos antes do café da manhã."
+          }
+        ]
+      }
     ],
     "rinite-alergica": [
-      {"nivel": "atencao", "titulo": "Mometasona: 2 jatos 2 vezes ao dia por 30 dias", "texto": "Na rinite alérgica, a bula indica 2 jatos em cada narina 1 vez ao dia (200 mcg/dia). 2 vezes ao dia (400 mcg/dia) é a dose para polipose nasal.", "sugestao": "2 jatos em cada narina 1 vez ao dia."}
+      {
+        "nivel": "atencao",
+        "titulo": "Mometasona: 2 jatos 2 vezes ao dia por 30 dias",
+        "texto": "Na rinite alérgica, a bula indica 2 jatos em cada narina 1 vez ao dia (200 mcg/dia). 2 vezes ao dia (400 mcg/dia) é a dose para polipose nasal.",
+        "sugestao": "2 jatos em cada narina 1 vez ao dia.",
+        "correcao": [
+          {
+            "aba": "Receita de alta",
+            "de": "Aplicar 2 jatos em cada narina, 2 vezes ao dia, por 30 dias.",
+            "para": "Aplicar 2 jatos em cada narina, 1 vez ao dia, por 30 dias."
+          },
+          {
+            "aba": "Receita de alta",
+            "de": "[Nasonex®] ------------------------ 02 frascos",
+            "para": "[Nasonex®] ------------------------ 01 frasco"
+          }
+        ]
+      }
     ],
     "otite-media-com-efusao-serosa-adulto": [
-      {"nivel": "atencao", "titulo": "Mometasona: 2 jatos 2 vezes ao dia por 30 dias", "texto": "400 mcg/dia por 30 dias é o dobro da dose habitual (200 mcg/dia).", "sugestao": "2 jatos em cada narina 1 vez ao dia."}
+      {
+        "nivel": "atencao",
+        "titulo": "Mometasona: 2 jatos 2 vezes ao dia por 30 dias",
+        "texto": "400 mcg/dia por 30 dias é o dobro da dose habitual (200 mcg/dia).",
+        "sugestao": "2 jatos em cada narina 1 vez ao dia.",
+        "correcao": [
+          {
+            "aba": "Receita de alta",
+            "de": "Aplicar 2 jatos em cada narina, 2 vezes ao dia, por 30 dias.",
+            "para": "Aplicar 2 jatos em cada narina, 1 vez ao dia, por 30 dias."
+          },
+          {
+            "aba": "Receita de alta",
+            "de": "[Nasonex®] ------------------------ 02 frascos",
+            "para": "[Nasonex®] ------------------------ 01 frasco"
+          }
+        ]
+      }
     ],
     "urgencia-hipertensiva": [
-      {"nivel": "atencao", "titulo": "Captopril 50 mg", "texto": "Na urgência hipertensiva, o habitual é começar com 25 mg (pode repetir após 1 hora). 50 mg de saída aumenta o risco de queda brusca da PA em idosos.", "sugestao": "Captopril 25 mg; repetir após 1 hora, se necessário."}
+      {
+        "nivel": "atencao",
+        "titulo": "Captopril 50 mg",
+        "texto": "Na urgência hipertensiva, o habitual é começar com 25 mg (pode repetir após 1 hora). 50 mg de saída aumenta o risco de queda brusca da PA em idosos.",
+        "sugestao": "Captopril 25 mg; repetir após 1 hora, se necessário.",
+        "correcao": [
+          {
+            "aba": "Receita",
+            "de": "Captopril 50 mg [Capoten®] ------------------------ 01 comprimido\nTomar 1 comprimido, via oral, dose única.",
+            "para": "Captopril 25 mg [Capoten®] ------------------------ 02 comprimidos\nTomar 1 comprimido, via oral. Se a PA continuar elevada após 1 hora, repetir 1 comprimido."
+          }
+        ]
+      }
     ],
     "urticaria-aguda": [
-      {"nivel": "atencao", "titulo": "Texto repetido na bilastina", "texto": "A posologia está duplicada: '...em jejum (1 hora antes ou 2 horas após alimentos), Tomar 1 comprimido VO 1x/dia, por 5–10 dias'.", "sugestao": "'Tomar 1 comprimido, via oral, 1 vez ao dia, em jejum, por 5 a 10 dias.'"}
+      {
+        "nivel": "atencao",
+        "titulo": "Texto repetido na bilastina",
+        "texto": "A posologia está duplicada: '...em jejum (1 hora antes ou 2 horas após alimentos), Tomar 1 comprimido VO 1x/dia, por 5–10 dias'.",
+        "sugestao": "'Tomar 1 comprimido, via oral, 1 vez ao dia, em jejum, por 5 a 10 dias.'",
+        "correcao": [
+          {
+            "aba": "Receita",
+            "de": "em jejum (1 hora antes ou 2 horas após alimentos), Tomar 1 comprimido VO 1x/dia, por 5–10 dias.",
+            "para": "em jejum (1 hora antes ou 2 horas após alimentos), por 5 a 10 dias."
+          }
+        ]
+      }
     ],
     "escabiose-sarna": [
-      {"nivel": "atencao", "titulo": "Ivermectina em dose fixa", "texto": "A dose é 200 mcg/kg. 2 comprimidos (12 mg) servem para cerca de 60 kg; abaixo disso a dose sobra, e acima falta.", "sugestao": "Escrever '200 mcg/kg (ex.: 60 kg = 2 comprimidos)', como já está no item de larva migrans."}
+      {
+        "nivel": "atencao",
+        "titulo": "Ivermectina em dose fixa",
+        "texto": "A dose é 200 mcg/kg. 2 comprimidos (12 mg) servem para cerca de 60 kg; abaixo disso a dose sobra, e acima falta.",
+        "sugestao": "Escrever '200 mcg/kg (ex.: 60 kg = 2 comprimidos)', como já está no item de larva migrans.",
+        "correcao": [
+          {
+            "aba": "Receita",
+            "de": "Tomar 2 comprimidos, via oral, em dose única hoje.\nRepetir 2 comprimidos, via oral, em dose única após 7 dias.",
+            "para": "Tomar 200 mcg/kg, via oral, em dose única hoje (ex.: 60 kg = 2 comprimidos).\nRepetir a mesma dose após 7 dias."
+          }
+        ]
+      }
     ],
     "tungiase-bicho-de-pe": [
-      {"nivel": "atencao", "titulo": "Ivermectina em dose fixa", "texto": "A dose é 200 mcg/kg. 2 comprimidos servem para cerca de 60 kg.", "sugestao": "Escrever '200 mcg/kg (ex.: 60 kg = 2 comprimidos)'."}
+      {
+        "nivel": "atencao",
+        "titulo": "Ivermectina em dose fixa",
+        "texto": "A dose é 200 mcg/kg. 2 comprimidos servem para cerca de 60 kg.",
+        "sugestao": "Escrever '200 mcg/kg (ex.: 60 kg = 2 comprimidos)'.",
+        "correcao": [
+          {
+            "aba": "Receita",
+            "de": "Tomar 2 comprimidos, via oral, em dose única.\nRepetir 2 comprimidos, via oral, após 7 dias, caso mantenha o quadro.",
+            "para": "Tomar 200 mcg/kg, via oral, em dose única (ex.: 60 kg = 2 comprimidos).\nRepetir a mesma dose após 7 dias, caso mantenha o quadro."
+          }
+        ]
+      }
     ]
   }
 }
@@ -849,13 +1181,38 @@ function filaRevisao(s = sec){ const peso = it => apontCrit(s, it) ? 0 : apontPe
 let rev = null; // modo revisão um por um: {s, pulados:Set}
 const hojeISO = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; };
 const fmtDia = iso => iso ? String(iso).split('-').reverse().join('/') : '';
-const htmlAp = a => `<div class="ap ${a.nivel === 'critico' ? 'crit' : ''}"><span class="ap-n">${a.nivel === 'critico' ? 'Crítico' : 'Atenção'}</span><div><b>${esc(a.titulo)}</b><p>${esc(a.texto)}</p>${a.sugestao ? `<p class="ap-s"><b>Sugestão:</b> ${esc(a.sugestao)}</p>` : ''}</div></div>`;
+// correções prontas: só mudam a receita quando o médico clica em "Confirmar mudança"
+const aplicadas = it => it.correcoesAplicadas?.[REV.data] || [];
+const htmlAp = (a, i, it) => {
+  const feita = it && aplicadas(it).includes(i);
+  const corr = a.correcao?.length ? (feita ? '<p class="ap-feita">✓ Mudança confirmada e aplicada na receita.</p>'
+    : `<details class="ap-diff"><summary>Ver a mudança proposta</summary>${a.correcao.map(c => `<div class="ap-dd"><small>${esc(c.aba)}</small><pre class="ap-de">${esc(c.de)}</pre><pre class="ap-para">${esc(c.para)}</pre></div>`).join('')}</details>
+      <div class="ap-acts"><button class="btn primary sm" data-apcorr="${i}">Confirmar mudança</button></div>`) : (it ? '<p class="ap-s"><i>Sem correção automática: decida no modo Editar.</i></p>' : '');
+  return `<div class="ap ${a.nivel === 'critico' ? 'crit' : ''} ${feita ? 'feita' : ''}"><span class="ap-n">${a.nivel === 'critico' ? 'Crítico' : 'Atenção'}</span><div><b>${esc(a.titulo)}</b><p>${esc(a.texto)}</p>${a.sugestao ? `<p class="ap-s"><b>Sugestão:</b> ${esc(a.sugestao)}</p>` : ''}${corr}</div></div>`;
+};
+function aplicarCorrecoes(it, idxs){
+  const ap = apontDe(sec, it); const x = clone(it); const falhou = [];
+  for (const i of idxs) for (const c of ap[i]?.correcao || []) {
+    const aba = x.abas.find(a => a.nome === c.aba);
+    if (!aba || !aba.texto.includes(c.de)) { falhou.push(ap[i].titulo); continue; }
+    aba.texto = c.todas ? aba.texto.split(c.de).join(c.para) : aba.texto.replace(c.de, c.para);
+  }
+  if (falhou.length) { toast('Esta receita foi editada por você e o trecho mudou. Corrija pelo Editar: ' + [...new Set(falhou)].join('; '), 7000); return false; }
+  x.correcoesAplicadas = {...(x.correcoesAplicadas || {}), [REV.data]: [...new Set([...aplicadas(x), ...idxs])]};
+  delete x.rascunho;
+  const resolvidos = ap.every((a, i) => x.correcoesAplicadas[REV.data].includes(i) || !a.correcao?.length);
+  if (resolvidos && ap.every(a => a.correcao?.length)) { x.apontOk = REV.data; x.revisadoEm = hojeISO(); }
+  saveItem(sec, x); rebuild(); renderAll();
+  toast(idxs.length > 1 ? 'Mudanças aplicadas na receita' : 'Mudança aplicada na receita');
+  return true;
+}
 function htmlApontamentos(it){
   const ap = apontDe(sec, it); if (!ap.length) return '';
-  if (it.apontOk === REV.data) return `<details class="apont ok"><summary>Revisão de doses de ${fmtDia(REV.data)}: ${ap.length} ${ap.length === 1 ? 'ponto conferido' : 'pontos conferidos'}${it.revisadoEm ? ' em ' + fmtDia(it.revisadoEm) : ''}</summary>${ap.map(htmlAp).join('')}</details>`;
+  if (it.apontOk === REV.data) return `<details class="apont ok"><summary>Revisão de doses de ${fmtDia(REV.data)}: ${ap.length} ${ap.length === 1 ? 'ponto conferido' : 'pontos conferidos'}${it.revisadoEm ? ' em ' + fmtDia(it.revisadoEm) : ''}</summary>${ap.map((a, i) => htmlAp(a, i, it)).join('')}</details>`;
   return `<div class="apont"><div class="apont-h"><b>Revisão de doses (${fmtDia(REV.data)}): ${ap.length} ${ap.length === 1 ? 'ponto' : 'pontos'} para conferir.</b> Nada foi mudado na receita. Se concordar, corrija no modo Editar.</div>
-    ${ap.map(htmlAp).join('')}
-    ${rev ? '' : '<div class="apont-acts"><button class="mini" data-act="revisado">Conferi: marcar como revisado</button></div>'}</div>`;
+    ${ap.map((a, i) => htmlAp(a, i, it)).join('')}
+    ${(() => { const pend = ap.map((a, i) => a.correcao?.length && !aplicadas(it).includes(i) ? i : -1).filter(i => i >= 0);
+      return `<div class="apont-acts">${pend.length > 1 ? `<button class="btn primary sm" data-apcorr="${pend.join(',')}">Confirmar todas as mudanças (${pend.length})</button>` : ''}${rev ? '' : '<button class="mini" data-act="revisado">Conferi, manter como está</button>'}</div>`; })()}</div>`;
 }
 function htmlRevbar(){
   if (!rev || rev.s !== sec) return '';
@@ -1338,6 +1695,7 @@ document.addEventListener('click', e => {
   const t = e.target.closest('button,[data-id]'); if (!t) return;
   if (t.dataset.fav) { e.stopPropagation(); toggleFav(t.dataset.fav); return; }
   if (t.dataset.sec) { sec = t.dataset.sec; cat = 'todas'; confirmKey = null; ui.sec = sec; lsSet('plantaorx:ui', ui); renderAll(); return; }
+  if (t.dataset.apcorr != null) { const it = curItem(); if (it) aplicarCorrecoes(it, t.dataset.apcorr.split(',').map(Number)); return; }
   if (t.dataset.revstart) { rev = {s: sec, pulados: new Set()}; cat = 'rascunhos'; proximoRev(); return; }
   if (t.dataset.cat) { cat = t.dataset.cat; renderChips(); renderList(); return; }
   if (t.dataset.id && t.classList.contains('card')) { sel[sec] = t.dataset.id; addRecente(sec, t.dataset.id); confirmKey = null; renderChips(); renderList(); renderDetail(); if (innerWidth <= 860) scrollTo({top:0}); return; }

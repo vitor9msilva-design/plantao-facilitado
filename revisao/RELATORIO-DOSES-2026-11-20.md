@@ -7,7 +7,7 @@ Revisão feita pelo Claude sobre as **216 prescrições** (580 posologias difere
 - 16 dos 18 itens apontados já estavam marcados como *revisados*. Os problemas mais sérios não estavam nos rascunhos.
 - Limite: a revisão leu as linhas numeradas de medicamento. Textos livres fora desse formato podem ter passado. Isso não substitui a sua conferência.
 
-Para aplicar uma sugestão: abra a receita, clique em **Editar**, corrija e depois em **Revisado, próximo**. Se discordar, só marque como revisado; o apontamento fica guardado e recolhido.
+Para aplicar: cada apontamento (menos o do ibuprofeno EV) já traz a **versão corrigida pronta**. Clique em **Ver a mudança proposta** para comparar antes e depois, e em **Confirmar mudança** (ou **Confirmar todas as mudanças**) para aplicar. Nada muda sem o seu clique. Se discordar, use **Conferi, manter como está**.
 
 ## Críticos (podem causar dano)
 

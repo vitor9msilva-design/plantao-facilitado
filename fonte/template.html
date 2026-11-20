@@ -495,7 +495,16 @@ body:has(#pront:not([hidden])) .wrap{max-width:1760px}
 .ap.crit .ap-n{border-color:var(--warn-fg);color:var(--warn-fg)}
 .ap p{margin:4px 0 0;line-height:1.45}
 .ap .ap-s{color:var(--fg)}
-.apont-acts{display:flex;justify-content:flex-end}
+.apont-acts{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:8px}
+.ap.feita{opacity:.75}
+.ap-feita{margin:6px 0 0;color:var(--ok);font-weight:600}
+.ap-diff{margin-top:8px}.ap-diff summary{cursor:pointer;color:var(--accent);font-weight:600}
+.ap-dd{display:grid;gap:4px;margin-top:8px}.ap-dd small{color:var(--muted);font-weight:600}
+.ap-de,.ap-para{margin:0;padding:8px 10px;border-radius:6px;font-family:var(--f-mono);font-size:12.5px;white-space:pre-wrap;word-break:break-word}
+.ap-de{background:var(--warn-bg);color:var(--warn-fg);text-decoration:line-through;text-decoration-color:rgba(163,38,27,.4)}
+.ap-para{background:var(--ok-bg);color:var(--ok)}
+.ap-acts{display:flex;justify-content:flex-end;margin-top:8px}
+.btn.sm{height:34px;padding:0 12px;font-size:13.5px}
 .revbar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;border-radius:var(--r);background:var(--accent-soft);border:1px solid var(--accent)}
 .revbar-t{display:grid;gap:2px}.revbar-t span{font-size:13px;color:var(--muted)}
 .revbar-acts{display:flex;flex-wrap:wrap;gap:6px}
@@ -784,13 +793,38 @@ function filaRevisao(s = sec){ const peso = it => apontCrit(s, it) ? 0 : apontPe
 let rev = null; // modo revisão um por um: {s, pulados:Set}
 const hojeISO = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; };
 const fmtDia = iso => iso ? String(iso).split('-').reverse().join('/') : '';
-const htmlAp = a => `<div class="ap ${a.nivel === 'critico' ? 'crit' : ''}"><span class="ap-n">${a.nivel === 'critico' ? 'Crítico' : 'Atenção'}</span><div><b>${esc(a.titulo)}</b><p>${esc(a.texto)}</p>${a.sugestao ? `<p class="ap-s"><b>Sugestão:</b> ${esc(a.sugestao)}</p>` : ''}</div></div>`;
+// correções prontas: só mudam a receita quando o médico clica em "Confirmar mudança"
+const aplicadas = it => it.correcoesAplicadas?.[REV.data] || [];
+const htmlAp = (a, i, it) => {
+  const feita = it && aplicadas(it).includes(i);
+  const corr = a.correcao?.length ? (feita ? '<p class="ap-feita">✓ Mudança confirmada e aplicada na receita.</p>'
+    : `<details class="ap-diff"><summary>Ver a mudança proposta</summary>${a.correcao.map(c => `<div class="ap-dd"><small>${esc(c.aba)}</small><pre class="ap-de">${esc(c.de)}</pre><pre class="ap-para">${esc(c.para)}</pre></div>`).join('')}</details>
+      <div class="ap-acts"><button class="btn primary sm" data-apcorr="${i}">Confirmar mudança</button></div>`) : (it ? '<p class="ap-s"><i>Sem correção automática: decida no modo Editar.</i></p>' : '');
+  return `<div class="ap ${a.nivel === 'critico' ? 'crit' : ''} ${feita ? 'feita' : ''}"><span class="ap-n">${a.nivel === 'critico' ? 'Crítico' : 'Atenção'}</span><div><b>${esc(a.titulo)}</b><p>${esc(a.texto)}</p>${a.sugestao ? `<p class="ap-s"><b>Sugestão:</b> ${esc(a.sugestao)}</p>` : ''}${corr}</div></div>`;
+};
+function aplicarCorrecoes(it, idxs){
+  const ap = apontDe(sec, it); const x = clone(it); const falhou = [];
+  for (const i of idxs) for (const c of ap[i]?.correcao || []) {
+    const aba = x.abas.find(a => a.nome === c.aba);
+    if (!aba || !aba.texto.includes(c.de)) { falhou.push(ap[i].titulo); continue; }
+    aba.texto = c.todas ? aba.texto.split(c.de).join(c.para) : aba.texto.replace(c.de, c.para);
+  }
+  if (falhou.length) { toast('Esta receita foi editada por você e o trecho mudou. Corrija pelo Editar: ' + [...new Set(falhou)].join('; '), 7000); return false; }
+  x.correcoesAplicadas = {...(x.correcoesAplicadas || {}), [REV.data]: [...new Set([...aplicadas(x), ...idxs])]};
+  delete x.rascunho;
+  const resolvidos = ap.every((a, i) => x.correcoesAplicadas[REV.data].includes(i) || !a.correcao?.length);
+  if (resolvidos && ap.every(a => a.correcao?.length)) { x.apontOk = REV.data; x.revisadoEm = hojeISO(); }
+  saveItem(sec, x); rebuild(); renderAll();
+  toast(idxs.length > 1 ? 'Mudanças aplicadas na receita' : 'Mudança aplicada na receita');
+  return true;
+}
 function htmlApontamentos(it){
   const ap = apontDe(sec, it); if (!ap.length) return '';
-  if (it.apontOk === REV.data) return `<details class="apont ok"><summary>Revisão de doses de ${fmtDia(REV.data)}: ${ap.length} ${ap.length === 1 ? 'ponto conferido' : 'pontos conferidos'}${it.revisadoEm ? ' em ' + fmtDia(it.revisadoEm) : ''}</summary>${ap.map(htmlAp).join('')}</details>`;
+  if (it.apontOk === REV.data) return `<details class="apont ok"><summary>Revisão de doses de ${fmtDia(REV.data)}: ${ap.length} ${ap.length === 1 ? 'ponto conferido' : 'pontos conferidos'}${it.revisadoEm ? ' em ' + fmtDia(it.revisadoEm) : ''}</summary>${ap.map((a, i) => htmlAp(a, i, it)).join('')}</details>`;
   return `<div class="apont"><div class="apont-h"><b>Revisão de doses (${fmtDia(REV.data)}): ${ap.length} ${ap.length === 1 ? 'ponto' : 'pontos'} para conferir.</b> Nada foi mudado na receita. Se concordar, corrija no modo Editar.</div>
-    ${ap.map(htmlAp).join('')}
-    ${rev ? '' : '<div class="apont-acts"><button class="mini" data-act="revisado">Conferi: marcar como revisado</button></div>'}</div>`;
+    ${ap.map((a, i) => htmlAp(a, i, it)).join('')}
+    ${(() => { const pend = ap.map((a, i) => a.correcao?.length && !aplicadas(it).includes(i) ? i : -1).filter(i => i >= 0);
+      return `<div class="apont-acts">${pend.length > 1 ? `<button class="btn primary sm" data-apcorr="${pend.join(',')}">Confirmar todas as mudanças (${pend.length})</button>` : ''}${rev ? '' : '<button class="mini" data-act="revisado">Conferi, manter como está</button>'}</div>`; })()}</div>`;
 }
 function htmlRevbar(){
   if (!rev || rev.s !== sec) return '';
@@ -1273,6 +1307,7 @@ document.addEventListener('click', e => {
   const t = e.target.closest('button,[data-id]'); if (!t) return;
   if (t.dataset.fav) { e.stopPropagation(); toggleFav(t.dataset.fav); return; }
   if (t.dataset.sec) { sec = t.dataset.sec; cat = 'todas'; confirmKey = null; ui.sec = sec; lsSet('plantaorx:ui', ui); renderAll(); return; }
+  if (t.dataset.apcorr != null) { const it = curItem(); if (it) aplicarCorrecoes(it, t.dataset.apcorr.split(',').map(Number)); return; }
   if (t.dataset.revstart) { rev = {s: sec, pulados: new Set()}; cat = 'rascunhos'; proximoRev(); return; }
   if (t.dataset.cat) { cat = t.dataset.cat; renderChips(); renderList(); return; }
   if (t.dataset.id && t.classList.contains('card')) { sel[sec] = t.dataset.id; addRecente(sec, t.dataset.id); confirmKey = null; renderChips(); renderList(); renderDetail(); if (innerWidth <= 860) scrollTo({top:0}); return; }

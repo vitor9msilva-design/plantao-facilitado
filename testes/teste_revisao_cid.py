@@ -46,6 +46,12 @@ with sync_playwright() as p:
     primeiro = pg.locator('#detail h2').inner_text()
     pg.locator('#detail [data-act="copy"], #detail [data-copy-field], #detail [data-act="cbox-copy"], #detail [data-act="combo-copyall"]').first.click(); pg.wait_for_timeout(200)
     ok('apontamento crítico' in pg.locator('.toast').inner_text(), 'copiar receita com apontamento crítico avisa')
+    ok(pg.locator('[data-apcorr]').count() >= 2, 'cada apontamento tem "Confirmar mudança"')
+    pg.locator('.apont-acts [data-apcorr]').click(); pg.wait_for_timeout(400)
+    salvo = [v['item'] for (c, k), v in DB.items() if c == 'itens' and v.get('item', {}).get('nome') == primeiro]
+    txt = ' '.join(a['texto'] for a in salvo[0]['abas']) if salvo else ''
+    ok('1 mg/kg' in txt and 'Aplicar 80 mg, via subcutânea, dose única' not in txt and 'junto com alimentos.\n\nOU\nUSO SUBCUTÂNEO' in txt, '"Confirmar todas as mudanças" aplica as correções na receita')
+    ok(pg.locator('.ap-feita').count() >= 2 or pg.locator('details.apont.ok').count() == 1, 'apontamentos aparecem como aplicados')
     pg.click('[data-act="rev-ok"]'); pg.wait_for_timeout(400)
     segundo = pg.locator('#detail h2').inner_text()
     ok(segundo != primeiro, f'"Revisado, próximo" avança ({primeiro} → {segundo})')
