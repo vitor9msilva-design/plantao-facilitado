@@ -1,0 +1,6 @@
+# Publicação automática pelo Netlify, ligado ao GitHub.
+# O site já vem gerado em prontos/netlify/ (rode fonte/build_netlify.py antes de cada commit),
+# então o Netlify só publica a pasta, sem build.
+[build]
+  publish = "prontos/netlify"
+  command = "echo 'site já gerado em prontos/netlify'"
