@@ -20,7 +20,9 @@ O **Plantão Facilitado** é um app web de pronto-socorro (prescrições, docume
 | `supabase/funcao-rapid-handler/index.ts` | **A função de IA que está no ar e funcionando** (Edge Function `rapid-handler`). É a versão ajustada pelo Gemini em 20/11/2026; veja abaixo |
 | `supabase/banco/criar-banco.sql` | Tabela `docs` e funções `ler` e `gravar` |
 | `historico/funcao-versao-claude-17nov.ts` | Versão anterior da função, só para consulta |
-| `testes/` | Testes de ponta a ponta (Playwright, Gemini simulado e a função rodando em Deno). Veja `testes/COMO-RODAR.md` |
+| `fonte/revisao.json` | Apontamentos da revisão de doses (crítico/atenção + sugestão), por id de prescrição. O build injeta em `__REVISAO__`; alimentam a fila "Revisar um por um". Relatório legível em `revisao/` |
+| `FLUXO-DE-TRABALHO.md` | Como mudanças e revisões de conteúdo acontecem (branch → PR com prévia → "pode publicar" → main) |
+| `testes/` | `teste_ponta_a_ponta.py` (IA: Playwright, Gemini simulado e a função em Deno; veja `testes/COMO-RODAR.md`) e `teste_revisao_cid.py` (revisão e CID, sem IA) |
 
 **Nunca edite `prontos/`:** os arquivos ali são gerados. Edite `fonte/` e rode os builds.
 
@@ -48,12 +50,18 @@ armazenamento (`store`: Claude db / Supabase RPC / local) · estado · filtro ·
 - Português do Brasil e medicamentos **registrados no Brasil**, com nome comercial. AINE preferido: **Toragesic (cetorolaco) ou naproxeno**. Corticoide nasal: **Nasonex ou Dymista**.
 - Toda receita gerada tem uma opção de **dor aguda intensa** (paracetamol + codeína ou tramadol).
 - **Não alterar doses** das receitas dele sem aprovação. O que for escrito pela IA ou por você entra como rascunho, para revisão.
-- **Conduta (caixa 4):** só o que o médico escreveu. Nada de exames, reavaliação ou orientações por conta própria.
+- **Conduta (caixa 4), regra de 20/11/2026:** sucinta, partindo do que o médico escreveu, mas **detalhando** cada item ("sintomáticos" → remédios e doses da prescrição do PS; "exames lab" → exames nomeados; "imagem" → exame específico). Não criar condutas de outro tipo; a única exceção é uma linha "- Atenção: …" quando houver algo importante para a segurança (internação/UTI, escore alto, sinal de alarme, exame alterado).
+- **Exames no prontuário:** só entram resultados que o médico informou. Além da regra no `FORMATO`, a função `semExamesInventados()` apaga a seção de exames quando `temResultadoExame()` não acha resultado nas anotações, nos exames ou na evolução.
+- **Estrutura da HDA:** o prontuário usa o modelo da biblioteca de HDAs (`hdaModelos()`: o da receita escolhida; senão, até 3 parecidos com as anotações).
+- **Escores e destino:** a IA calcula os escores aplicáveis (caixa 3, "# Escores:") só com dados informados e devolve `gravidade` ({destino, motivo}); internação/UTI mostram o aviso no topo e um alerta no painel lateral.
+- **Painel lateral do prontuário:** trilho escuro em sanfona (`renderSide`, `painelItens`): pendências, reavaliação, resultados de exames, pedido de imagem, escores, decisão, pedido de internação e discussão. Só uma seção aberta por vez (`ui.painel`).
 - **Nunca deixar lacunas** ("[completar]", "___", colchetes) em textos gerados.
 - Justificativa de imagem em **uma frase**. O pedido de internação tem cabeçalho fixo (veja `gerarInternacao`).
 - **Privacidade:**
   - Pacientes só com **iniciais**, que nunca vão para a IA. São apagados 4 h após a entrada ou na alta.
   - Nunca colocar no código o cofre, a chave do Gemini ou qualquer outro segredo.
+- **CID nos documentos:** os modelos de pedido, encaminhamento e relatório usam `{cid}`. O valor vem, nesta ordem, do CID escolhido pelo médico, da doença ligada ao paciente e do CID sugerido no modelo. **Atestados e declarações nunca recebem CID automático** (CFM 1.658/2002).
+- **Revisão de doses:** o Claude aponta em `fonte/revisao.json` e não altera a receita. A decisão é do médico, na tela de revisão.
 - **Direitos autorais:** os manuais comprados de terceiros (MedRoute/MedOpen) **não** podem ser copiados para o projeto.
 
 ## Como trabalhar aqui

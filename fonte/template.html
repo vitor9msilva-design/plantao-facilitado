@@ -283,6 +283,11 @@ body:has(#pront:not([hidden])) .wrap{max-width:1760px}
 .pwait{display:flex;align-items:center;gap:10px;padding:18px;border:1px dashed var(--accent);border-radius:var(--r);background:var(--accent-soft);color:var(--accent);font-weight:600}
 .pwait i{width:10px;height:10px;border-radius:50%;background:var(--accent);animation:pulse 1s ease-in-out infinite}
 @keyframes pulse{50%{opacity:.25}}
+.alerta-int{display:grid;grid-template-columns:auto 1fr;gap:6px 12px;align-items:start;padding:14px 16px;border-radius:var(--r);background:var(--warn-bg);border:1px solid var(--warn-line);color:var(--fg)}
+.alerta-int .ai-ico{font-size:22px;color:var(--warn-fg);line-height:1}
+.alerta-int b{color:var(--warn-fg);font-size:16px}.alerta-int p{margin:4px 0}.alerta-int small{color:var(--muted)}
+.alerta-int .ai-acts{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end}
+.alerta-obs{padding:10px 14px;border-radius:var(--r);background:var(--mid-bg);border:1px solid var(--mid);font-size:14px}
 .perr{padding:12px 14px;border-radius:var(--r);background:var(--warn-bg);border:1px solid var(--warn-line);color:var(--warn-fg);font-weight:500}
 .ptag{font-size:12px;font-weight:600;color:var(--accent);background:var(--accent-soft);border-radius:6px;padding:2px 8px}
 .copyall{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px}
@@ -480,6 +485,39 @@ body:has(#pront:not([hidden])) .wrap{max-width:1760px}
   .pront #casos{display:grid}
   .pront{grid-template-columns:minmax(0,1fr)!important;grid-template-areas:'casos' 'main' 'side'!important}
 }
+/* revisão de doses, modo revisão e CID do pedido */
+.card .rasc.crit{color:var(--warn-fg);border-color:var(--warn-fg)}
+.chip.rev-start{border-color:var(--accent);color:var(--accent);font-weight:600}
+.chip .n.crit{color:var(--warn-fg);font-weight:700}
+.badge.ok{background:var(--ok-bg);color:var(--ok)}
+.apont{display:grid;gap:8px;padding:12px 14px;border-radius:var(--r);border:1px solid var(--warn-line);background:var(--surface);font-size:14px}
+.apont.ok{border-color:var(--line);color:var(--muted)}
+.apont.ok summary{cursor:pointer}
+.apont-h{line-height:1.45}
+.ap{display:grid;grid-template-columns:auto 1fr;gap:10px;padding:10px 12px;border-radius:var(--r-sm);background:var(--mid-bg)}
+.ap.crit{background:var(--warn-bg)}
+.ap-n{align-self:start;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;padding:2px 6px;border-radius:5px;border:1px solid var(--mid);color:var(--mid)}
+.ap.crit .ap-n{border-color:var(--warn-fg);color:var(--warn-fg)}
+.ap p{margin:4px 0 0;line-height:1.45}
+.ap .ap-s{color:var(--fg)}
+.apont-acts{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:8px}
+.ap.feita{opacity:.75}
+.ap-feita{margin:6px 0 0;color:var(--ok);font-weight:600}
+.ap-diff{margin-top:8px}.ap-diff summary{cursor:pointer;color:var(--accent);font-weight:600}
+.ap-dd{display:grid;gap:4px;margin-top:8px}.ap-dd small{color:var(--muted);font-weight:600}
+.ap-de,.ap-para{margin:0;padding:8px 10px;border-radius:6px;font-family:var(--f-mono);font-size:12.5px;white-space:pre-wrap;word-break:break-word}
+.ap-de{background:var(--warn-bg);color:var(--warn-fg);text-decoration:line-through;text-decoration-color:rgba(163,38,27,.4)}
+.ap-para{background:var(--ok-bg);color:var(--ok)}
+.ap-acts{display:flex;justify-content:flex-end;margin-top:8px}
+.btn.sm{height:34px;padding:0 12px;font-size:13.5px}
+.revbar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;border-radius:var(--r);background:var(--accent-soft);border:1px solid var(--accent)}
+.revbar-t{display:grid;gap:2px}.revbar-t span{font-size:13px;color:var(--muted)}
+.revbar-acts{display:flex;flex-wrap:wrap;gap:6px}
+.cid-row{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;padding:10px 12px;border-radius:var(--r);background:var(--surface);border:1px solid var(--line)}
+.cid-row label{font-weight:600;font-size:14px}
+.cid-row input{width:9em;font-family:var(--f-mono);font-size:15px;padding:7px 9px;border-radius:var(--r-sm);border:1px solid var(--line);background:var(--surface);color:var(--fg)}
+.cid-row .hint{flex:1 1 220px}
+.cid-aviso{margin:0}
 /* aviso no copiar de rascunho */
 .toast.alerta{background:var(--field);color:var(--fg);border:1px solid var(--star);max-width:min(92vw,520px);text-align:center}
 /* celular: seções numa barra fixa embaixo, todas visíveis (antes o Prontuário ficava escondido à direita) */
@@ -497,6 +535,57 @@ body:has(#pront:not([hidden])) .wrap{max-width:1760px}
   .cartbar{bottom:calc(10px + var(--nav-h) + env(safe-area-inset-bottom,0px))}
   .ask-dock{bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0px))}
 }
+/* painel lateral do caso (trilho escuro em sanfona) */
+#prontSide{display:block}
+.rail{background:#0C1F1E;color:#C9D6D4;border-radius:14px;padding:10px;display:grid;gap:4px;align-content:start;grid-template-columns:minmax(0,1fr);box-shadow:0 10px 30px -18px rgba(0,0,0,.6)}
+:root[data-theme="dark"] .rail{background:#081312;border:1px solid #17302C}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .rail{background:#081312;border:1px solid #17302C}}
+.rail-top{padding:2px 6px 10px;border-bottom:1px solid #1E3C38;margin-bottom:4px}
+.rail-tit{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#7F9693}
+.rail-icons{display:flex;flex-wrap:wrap;gap:3px}
+.rail-qi{position:relative;width:34px;height:34px;display:grid;place-items:center;border-radius:9px;border:0;background:#13302D;color:#C9D6D4}
+.rail-qi:hover,.rail-qi.on{background:#14B8A6;color:#04211E}
+.rail-qi .rail-ico{width:18px;height:18px}
+.rail-qi::after{content:attr(data-tip);position:absolute;left:50%;top:calc(100% + 6px);translate:-50% 0;white-space:nowrap;padding:4px 8px;border-radius:6px;background:#04211E;color:#fff;font-size:12px;font-weight:500;pointer-events:none;opacity:0;transition:opacity .12s;z-index:10}
+.rail-qi:hover::after,.rail-qi:focus-visible::after{opacity:1}
+.rail-dot{position:absolute;top:5px;right:5px;width:7px;height:7px;border-radius:50%;background:#F2C14E}
+.rail-dot.alerta{background:#FF8A80}
+.rail-it{border-radius:10px}
+.rail-btn{width:100%;display:flex;align-items:center;gap:10px;height:44px;padding:0 10px;border:0;border-radius:9px;background:transparent;color:#C9D6D4;font:inherit;font-size:14.5px;font-weight:500;text-align:left}
+.rail-btn:hover{background:#13302D;color:#fff}
+.rail-it.open>.rail-btn{background:#17322F;color:#fff;font-weight:600;box-shadow:inset 3px 0 0 #14B8A6}
+.rail-btn .rail-ico{width:19px;height:19px;flex:none}
+.rail-l{flex:1;min-width:0}
+.rail-n{min-width:22px;height:20px;padding:0 6px;border-radius:10px;display:grid;place-items:center;background:#24504B;color:#E1ECE9;font-family:var(--f-mono);font-size:11.5px}
+.rail-n.alerta{background:#FF8A80;color:#3A0A06}
+.rail-n.nv-ok{background:transparent;color:#7FD39B}.rail-n.nv-mid{background:transparent;color:#F2C14E}.rail-n.nv-hi,.rail-n.nv-warn{background:transparent;color:#FF8A80}
+.rail-chev{width:16px;height:16px;flex:none;opacity:.6;transition:rotate .15s}
+.rail-it.open .rail-chev{rotate:180deg}
+.rail-body{margin:6px 2px 8px;padding:4px;border-radius:10px;background:var(--bg);color:var(--fg);display:grid;gap:10px}
+.rail-body>.paper{border:0;box-shadow:none;min-width:0}
+.rail-body,.rail-body *{min-width:0}.rail-body select,.rail-body input,.rail-body textarea{max-width:100%}.rail-body .prow,.rail-body .tgrid{flex-wrap:wrap}
+.rail-body .chips-row{flex-wrap:wrap}.rail-body .chip{white-space:normal;height:auto;min-height:30px;max-width:100%;text-align:left;line-height:1.3;padding-block:5px}
+.rail-body .paper-head>b:first-child{display:none}
+.rail-body .paper-head:not(:has(button)):not(:has(.hint)){display:none}
+.rail-body .tools-paper .seg-tools{display:none}
+.rail-body .chat-body{max-height:52vh;overflow:auto}
+.rail-body .ask-dock{position:static}
+@media (min-width:861px){
+  body:has(#pront:not([hidden])) .wrap{max-width:none}
+  .pront{grid-template-columns:minmax(0,1fr) 330px!important;gap:16px;max-width:none;margin-right:calc(-1 * max(16px, env(safe-area-inset-right,0px)))}
+  #prontSide{top:calc(env(safe-area-inset-top,0px) + var(--top-h,64px));height:calc(100vh - var(--top-h,64px));max-height:none;margin-top:-16px;padding:0;overflow:auto}
+  #prontSide .rail{min-height:100%;border-radius:0;box-shadow:none;border-left:1px solid #1E3C38;padding:14px 10px}
+}
+@media (min-width:861px) and (max-width:1279px){.pront{grid-template-columns:minmax(0,1fr) 300px!important;gap:14px}}
+@media (min-width:1500px){.pront{grid-template-columns:minmax(0,1fr) 360px!important}}
+.img-card{overflow:hidden}
+.img-h{width:100%;display:flex;align-items:center;gap:10px;min-height:52px;padding:0 16px;border:0;background:transparent;color:var(--fg);font:inherit;font-weight:600;font-size:15px;text-align:left}
+.img-h .rail-ico{width:19px;height:19px;color:var(--accent);flex:none}
+.img-h small{flex:1;font-weight:400}
+.img-card.open .img-h{border-bottom:1px solid var(--line)}
+.img-card.open .rail-chev{rotate:180deg}
+.img-card .tools-paper{border:0;box-shadow:none}
+.img-card .tools-paper>.paper-head,.img-card .seg-tools{display:none}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 
@@ -555,6 +644,7 @@ body:has(#pront:not([hidden])) .wrap{max-width:1760px}
 <div id="layer"></div>
 
 <script type="application/json" id="base">__BASE__</script>
+<script type="application/json" id="revisao">__REVISAO__</script>
 <script>
 (() => {
 'use strict';
@@ -585,9 +675,22 @@ function tokens(){
   return {
     '{data_extenso}': `${d.getDate()} de ${MESES[d.getMonth()]} de ${d.getFullYear()}`,
     '{data}': `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`,
-    '{medico}': cfg.medico || 'Médico(a)', '{crm}': cfg.crm || 'CRM ________', '{cidade}': cfg.cidade || '________'
+    '{medico}': cfg.medico || 'Médico(a)', '{crm}': cfg.crm || 'CRM ________', '{cidade}': cfg.cidade || '________',
+    '{cid}': cidCtx || '________'
   };
 }
+/* CID do pedido: o modelo de documento tem {cid}; o valor vem do paciente, do próprio modelo ou do que o médico escolher */
+let cidCtx = '';
+const cidDoc = {};   // CID escolhido por documento nesta sessão (id do documento -> código)
+const CID_SEM = new Set(['atestados', 'declaracoes']); // CID só com autorização do paciente (CFM 1.658/2002): nunca automático
+const cidCodigo = v => (String(v || '').trim().match(/^[A-Za-z]\d{2}(?:\.\d{1,2})?/)?.[0] || String(v || '').trim()).toUpperCase().slice(0, 12);
+function comCid(cid, fn){ const antes = cidCtx; cidCtx = cid || ''; try { return fn(); } finally { cidCtx = antes; } }
+function cidListaHtml(){
+  const vistos = new Map();
+  for (const s of ['prescricoes', 'documentos']) for (const it of state.data[s]?.itens || []) if (it.cid && !vistos.has(it.cid)) vistos.set(it.cid, it.nome);
+  return `<datalist id="cidLista">${[...vistos].sort((a, b) => a[0].localeCompare(b[0])).map(([c, n]) => `<option value="${esc(c)}">${esc(c)} · ${esc(n)}</option>`).join('')}</datalist>`;
+}
+const cidDoModelo = it => it && !CID_SEM.has(it.categoria) ? (cidDoc[it.id] ?? it.cid ?? '') : '';
 const render = t => { let s = String(t ?? ''); for (const [k,v] of Object.entries(tokens())) s = s.split(k).join(v); return s; };
 const unrender = t => { let s = String(t ?? ''); const tk = Object.entries(tokens()).sort((a,b)=>b[1].length-a[1].length);
   for (const [k,v] of tk) if (v && !/^_+$/.test(v) && v.length > 3) s = s.split(v).join(k); return s; };
@@ -736,6 +839,63 @@ const isFav = (s, id) => (state.favs[s] || []).includes(id);
 function stripItem(it){ const o = clone(it); delete o._base; return o; }
 function saveItem(s, it){ const o = {secao:s, item:stripItem(it), atualizado:Date.now()}; const prev = store.ov[key(s,it.id)]; o.criado = prev?.criado || Date.now(); return store.write('itens', key(s, it.id), o); }
 
+/* ---------------- revisão: rascunhos e apontamentos de dose (fonte/revisao.json) ---------------- */
+const REV = (() => { try { const t = (document.getElementById('revisao')?.textContent || '').trim(); return t.startsWith('{') ? JSON.parse(t) : {itens:{}}; } catch { return {itens:{}}; } })();
+const apontDe = (s, it) => s === 'prescricoes' && it ? (REV.itens?.[it.id] || []) : [];
+const apontPend = (s, it) => apontDe(s, it).length > 0 && it.apontOk !== REV.data;
+const apontCrit = (s, it) => apontPend(s, it) && apontDe(s, it).some(a => a.nivel === 'critico');
+const precisaRev = (s, it) => !!it.rascunho || apontPend(s, it);
+function filaRevisao(s = sec){ const peso = it => apontCrit(s, it) ? 0 : apontPend(s, it) ? 1 : 2; return state.data[s].itens.filter(it => precisaRev(s, it)).sort((a, b) => peso(a) - peso(b)); }
+let rev = null; // modo revisão um por um: {s, pulados:Set}
+const hojeISO = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; };
+const fmtDia = iso => iso ? String(iso).split('-').reverse().join('/') : '';
+// correções prontas: só mudam a receita quando o médico clica em "Confirmar mudança"
+const aplicadas = it => it.correcoesAplicadas?.[REV.data] || [];
+const htmlAp = (a, i, it) => {
+  const feita = it && aplicadas(it).includes(i);
+  const corr = a.correcao?.length ? (feita ? '<p class="ap-feita">✓ Mudança confirmada e aplicada na receita.</p>'
+    : `<details class="ap-diff"><summary>Ver a mudança proposta</summary>${a.correcao.map(c => `<div class="ap-dd"><small>${esc(c.aba)}</small><pre class="ap-de">${esc(c.de)}</pre><pre class="ap-para">${esc(c.para)}</pre></div>`).join('')}</details>
+      <div class="ap-acts"><button class="btn primary sm" data-apcorr="${i}">Confirmar mudança</button></div>`) : (it ? '<p class="ap-s"><i>Sem correção automática: decida no modo Editar.</i></p>' : '');
+  return `<div class="ap ${a.nivel === 'critico' ? 'crit' : ''} ${feita ? 'feita' : ''}"><span class="ap-n">${a.nivel === 'critico' ? 'Crítico' : 'Atenção'}</span><div><b>${esc(a.titulo)}</b><p>${esc(a.texto)}</p>${a.sugestao ? `<p class="ap-s"><b>Sugestão:</b> ${esc(a.sugestao)}</p>` : ''}${corr}</div></div>`;
+};
+function aplicarCorrecoes(it, idxs){
+  const ap = apontDe(sec, it); const x = clone(it); const falhou = [];
+  for (const i of idxs) for (const c of ap[i]?.correcao || []) {
+    const aba = x.abas.find(a => a.nome === c.aba);
+    if (!aba || !aba.texto.includes(c.de)) { falhou.push(ap[i].titulo); continue; }
+    aba.texto = c.todas ? aba.texto.split(c.de).join(c.para) : aba.texto.replace(c.de, c.para);
+  }
+  if (falhou.length) { toast('Esta receita foi editada por você e o trecho mudou. Corrija pelo Editar: ' + [...new Set(falhou)].join('; '), 7000); return false; }
+  x.correcoesAplicadas = {...(x.correcoesAplicadas || {}), [REV.data]: [...new Set([...aplicadas(x), ...idxs])]};
+  delete x.rascunho;
+  const resolvidos = ap.every((a, i) => x.correcoesAplicadas[REV.data].includes(i) || !a.correcao?.length);
+  if (resolvidos && ap.every(a => a.correcao?.length)) { x.apontOk = REV.data; x.revisadoEm = hojeISO(); }
+  saveItem(sec, x); rebuild(); renderAll();
+  toast(idxs.length > 1 ? 'Mudanças aplicadas na receita' : 'Mudança aplicada na receita');
+  return true;
+}
+function htmlApontamentos(it){
+  const ap = apontDe(sec, it); if (!ap.length) return '';
+  if (it.apontOk === REV.data) return `<details class="apont ok"><summary>Revisão de doses de ${fmtDia(REV.data)}: ${ap.length} ${ap.length === 1 ? 'ponto conferido' : 'pontos conferidos'}${it.revisadoEm ? ' em ' + fmtDia(it.revisadoEm) : ''}</summary>${ap.map((a, i) => htmlAp(a, i, it)).join('')}</details>`;
+  return `<div class="apont"><div class="apont-h"><b>Revisão de doses (${fmtDia(REV.data)}): ${ap.length} ${ap.length === 1 ? 'ponto' : 'pontos'} para conferir.</b> Nada foi mudado na receita. Se concordar, corrija no modo Editar.</div>
+    ${ap.map((a, i) => htmlAp(a, i, it)).join('')}
+    ${(() => { const pend = ap.map((a, i) => a.correcao?.length && !aplicadas(it).includes(i) ? i : -1).filter(i => i >= 0);
+      return `<div class="apont-acts">${pend.length > 1 ? `<button class="btn primary sm" data-apcorr="${pend.join(',')}">Confirmar todas as mudanças (${pend.length})</button>` : ''}${rev ? '' : '<button class="mini" data-act="revisado">Conferi, manter como está</button>'}</div>`; })()}</div>`;
+}
+function htmlRevbar(){
+  if (!rev || rev.s !== sec) return '';
+  const falta = filaRevisao().length;
+  return `<div class="revbar" role="region" aria-label="Revisão"><div class="revbar-t"><b>Revisão um por um</b><span>${falta} ${falta === 1 ? 'item falta' : 'itens faltam'} · primeiro os de dose crítica</span></div>
+    <div class="revbar-acts"><button class="btn primary" data-act="rev-ok">✓ Revisado, próximo</button><button class="btn" data-act="rev-pular">Pular</button><button class="btn" data-act="rev-editar">${edit ? 'Sair do editar' : 'Editar'}</button><button class="btn" data-act="rev-sair">Sair</button></div></div>`;
+}
+function proximoRev(){
+  if (!rev) return;
+  const fila = filaRevisao(rev.s).filter(it => !rev.pulados.has(it.id));
+  if (!fila.length) { const pul = rev.pulados.size; rev = null; renderAll(); toast(pul ? `Revisão terminada. ${pul} ${pul === 1 ? 'item pulado continua' : 'itens pulados continuam'} em "A revisar".` : 'Revisão terminada. Nada mais a revisar.', 5000); return; }
+  sel[rev.s] = fila[0].id; confirmKey = null; renderAll(); scrollTo({top:0});
+}
+function marcarRevisado(x){ delete x.rascunho; x.revisadoEm = hojeISO(); if (apontDe(sec, x).length) x.apontOk = REV.data; }
+
 /* ---------------- filtro ---------------- */
 const recentes = s => (ui.recentes?.[s] || []);
 function addRecente(s, id){
@@ -748,7 +908,7 @@ function filtered(s = sec, c = cat){
   const d = state.data[s] || {itens:[], categorias:[]}; let arr = d.itens;
   if (c === 'favoritas') arr = arr.filter(it => isFav(s, it.id));
   else if (c === 'recentes') arr = recentes(s).map(id => arr.find(it => it.id === id)).filter(Boolean);
-  else if (c === 'rascunhos') arr = arr.filter(it => it.rascunho);
+  else if (c === 'rascunhos') arr = arr.filter(it => precisaRev(s, it));
   else if (c !== 'todas') arr = arr.filter(it => it.categoria === c);
   if (q.trim()) {
     const terms = norm(q).split(/\s+/).filter(Boolean);
@@ -788,8 +948,9 @@ function renderChips(){
   h += `<button class="chip" data-cat="favoritas" aria-pressed="${cat==='favoritas'}">★ Favoritas <span class="n">${favN}</span></button>`;
   const recN = recentes(sec).filter(id => d.itens.some(it => it.id === id)).length;
   if (recN || cat === 'recentes') h += `<button class="chip" data-cat="recentes" aria-pressed="${cat==='recentes'}">🕘 Recentes <span class="n">${recN}</span></button>`;
-  const rascN = d.itens.filter(it => it.rascunho).length;
-  if (rascN || cat === 'rascunhos') h += `<button class="chip" data-cat="rascunhos" aria-pressed="${cat==='rascunhos'}" title="Itens escritos pelo Claude que ainda não foram revisados">✎ A revisar <span class="n">${rascN}</span></button>`;
+  const rascN = d.itens.filter(it => precisaRev(sec, it)).length, critN = d.itens.filter(it => apontCrit(sec, it)).length;
+  if (rascN || cat === 'rascunhos') h += `<button class="chip" data-cat="rascunhos" aria-pressed="${cat==='rascunhos'}" title="Rascunhos ainda não revisados e receitas com apontamento de dose">✎ A revisar <span class="n">${rascN}</span></button>`;
+  if (rascN && !rev) h += `<button class="chip rev-start" data-revstart="1" title="Abre um item por vez, primeiro os de dose crítica">▶ Revisar um por um${critN ? ` <span class="n crit">${critN} crítico${critN > 1 ? 's' : ''}</span>` : ''}</button>`;
   for (const c of d.categorias) h += `<button class="chip" data-cat="${esc(c.id)}" aria-pressed="${cat===c.id}"><span aria-hidden="true">${esc(c.emoji)}</span>${esc(c.nome)} <span class="n">${cnt[c.id]||0}</span></button>`;
   if (edit) h += `<button class="chip add" data-act="cats">✎ Categorias</button>`;
   $('#chips').innerHTML = h;
@@ -817,7 +978,7 @@ function renderList(){
     const fav = isFav(sec, it.id);
     return `<div class="card" role="button" tabindex="0" data-id="${esc(it.id)}" aria-current="${sel[sec]===it.id}">
       <span class="ico" aria-hidden="true">${esc(c?.emoji || SECS[sec].ico)}</span>
-      <span style="min-width:0"><div class="t">${esc(it.nome)}${vazio ? '<span class="vazio">em branco</span>' : ''}${it.rascunho ? '<span class="rasc">rascunho</span>' : ''}</div><div class="s">${esc(sub)}</div></span>
+      <span style="min-width:0"><div class="t">${esc(it.nome)}${vazio ? '<span class="vazio">em branco</span>' : ''}${apontCrit(sec, it) ? '<span class="rasc crit">conferir dose</span>' : apontPend(sec, it) ? '<span class="rasc">conferir</span>' : ''}${it.rascunho ? '<span class="rasc">rascunho</span>' : ''}</div><div class="s">${esc(sub)}</div></span>
       <button class="star ${fav?'on':''}" data-fav="${esc(it.id)}" aria-label="${fav?'Remover dos':'Adicionar aos'} favoritos" aria-pressed="${fav}">${fav?'★':'☆'}</button>
     </div>`;
   }).join('');
@@ -834,6 +995,7 @@ function renderDetail(){
     return;
   }
   const S = SECS[sec]; const c = catOf(sec, it.categoria);
+  cidCtx = sec === 'documentos' ? cidDoModelo(it) : '';
   let ai = Math.min(abaSel[sec + it.id] || 0, it.abas.length - 1); if (ai < 0) ai = 0;
   const aba = it.abas[ai] || {nome:'', texto:''};
   const k = dk(it, ai);
@@ -849,10 +1011,16 @@ function renderDetail(){
   let h = `<div class="d-head"><div style="min-width:0">
       <button class="back" data-act="back">← Voltar à lista</button>
       <h2>${esc(it.nome)}</h2>
-      <div class="badges">${it.cid ? `<button class="badge cid" data-act="copycid" title="Copiar CID">CID ${esc(it.cid)} ⧉</button>` : ''}<span class="badge"><span aria-hidden="true">${esc(c?.emoji||'')}</span> ${esc(c?.nome || 'Sem categoria')}</span></div>
+      <div class="badges">${it.cid ? `<button class="badge cid" data-act="copycid" title="Copiar CID">CID ${esc(it.cid)} ⧉</button>` : ''}<span class="badge"><span aria-hidden="true">${esc(c?.emoji||'')}</span> ${esc(c?.nome || 'Sem categoria')}</span>${it.revisadoEm ? `<span class="badge ok" title="Marcado como revisado">✓ Revisado em ${fmtDia(it.revisadoEm)}</span>` : ''}</div>
     </div>
     <button class="d-star ${fav?'on':''}" data-fav="${esc(it.id)}" aria-label="${fav?'Remover dos':'Adicionar aos'} favoritos" aria-pressed="${fav}">${fav?'★':'☆'}</button></div>`;
+  h = htmlRevbar() + h;
   if (it.rascunho) h += `<div class="draft-banner"><span><b>Rascunho escrito pelo Claude.</b> Confira doses, quantidades e condutas antes de usar.</span><button class="mini" data-act="revisado">Marcar como revisado</button></div>`;
+  h += htmlApontamentos(it);
+  if (sec === 'documentos' && !CID_SEM.has(it.categoria) && it.abas.some(a => a.texto.includes('{cid}')))
+    h += `<div class="cid-row"><label for="docCid">CID do pedido</label><input id="docCid" list="cidLista" value="${esc(cidCtx)}" placeholder="Ex.: R07.4" autocomplete="off" spellcheck="false"><span class="hint">Entra na linha "CID" do documento. Escolha da lista (as doenças das suas prescrições) ou digite.</span>${cidListaHtml()}</div>`;
+  else if (sec === 'documentos' && CID_SEM.has(it.categoria) && it.abas.some(a => /\bCID\b/.test(a.texto)))
+    h += `<p class="hint cid-aviso">CID em atestado ou declaração só com autorização do paciente (Resolução CFM 1.658/2002). Por isso ele nunca é preenchido sozinho aqui.</p>`;
 
   if (edit) {
     const opts = state.data[sec].categorias.map(cc => `<option value="${esc(cc.id)}" ${cc.id===it.categoria?'selected':''}>${esc(cc.emoji)} ${esc(cc.nome)}</option>`).join('');
@@ -1134,11 +1302,30 @@ function renderAll(){
 function measure(){ const t = $('#top'); if (t) document.documentElement.style.setProperty('--top-h', t.offsetHeight + 'px'); }
 
 /* ---------------- ações ---------------- */
+document.addEventListener('change', e => {
+  const t = e.target;
+  if (t.id === 'docCid') { // aba Documentos
+    const it = curItem(); if (!it) return;
+    const antes = cidDoModelo(it), novo = cidCodigo(t.value); cidDoc[it.id] = novo;
+    for (const k of Object.keys(drafts)) if (k.startsWith(`documentos/${it.id}/`)) drafts[k] = drafts[k].split(`CID: ${antes || '________'}`).join(`CID: ${novo || '________'}`);
+    renderDetail(); if (novo) toast('CID ' + novo + ' no documento');
+  }
+  if (t.id === 'dpCid') { // documentos do paciente
+    const ta = $('#dpTxt'); const it = docPac.id ? state.data.documentos.itens.find(x => x.id === docPac.id) : null;
+    const antes = cidPaciente(it), novo = cidCodigo(t.value); docPac.cid = novo; t.value = novo;
+    if (ta) { const re = /^(.*\bCID:?)[ \t]*[A-Z]?\d{0,2}(?:\.\d{1,2})?_*[ \t]*$/m;
+      if (antes && ta.value.includes(antes)) ta.value = ta.value.split(antes).join(novo);
+      else if (re.test(ta.value)) ta.value = ta.value.replace(re, (m, r) => `${r} ${novo}`);
+      else if (novo) { const L = ta.value.split('\n'); let k = L.findIndex(l => /^(Indicação clínica|Hipótese diagnóstica|Motivo|Diagnóstico)/i.test(l));
+        if (k < 0) { k = L.findIndex(l => /^\S.*,\s*\d{1,2} de \S+ de \d{4}\.?$/.test(l)); k = k < 0 ? L.length - 1 : k - 2; }
+        L.splice(k + 1, 0, `CID: ${novo}`); ta.value = L.join('\n'); } }
+  }
+});
 let toastT;
 function toast(msg, ms){ clearTimeout(toastT); let el = $('.toast'); if (!el) { el = document.createElement('div'); el.className = 'toast'; el.setAttribute('role','status'); document.body.appendChild(el); } el.textContent = msg; el.hidden = false; el.classList.toggle('alerta', !!ms); toastT = setTimeout(() => el.hidden = true, ms || 2200); }
 // Copiar de um item ainda não revisado: o aviso aparece junto, porque a faixa amarela pode ter saído da tela
-const copiadoMsg = (it, msg) => it?.rascunho ? (msg || 'Copiado') + '. Atenção: é rascunho, confira doses e quantidades.' : msg;
-const copiadoMs = it => it?.rascunho ? 5000 : undefined;
+const copiadoMsg = (it, msg, s = sec) => !it ? msg : apontCrit(s, it) ? (msg || 'Copiado') + '. Atenção: esta receita tem apontamento crítico de dose. Confira antes de usar.' : it.rascunho ? (msg || 'Copiado') + '. Atenção: é rascunho, confira doses e quantidades.' : msg;
+const copiadoMs = (it, s = sec) => it && (it.rascunho || apontCrit(s, it)) ? 5000 : undefined;
 function copy(text, msg, ms){
   const done = () => toast(msg || 'Copiado', ms);
   try { navigator.clipboard.writeText(text).then(done, () => fallbackCopy(text, done)); } catch { fallbackCopy(text, done); }
@@ -1176,6 +1363,8 @@ document.addEventListener('click', e => {
   const t = e.target.closest('button,[data-id]'); if (!t) return;
   if (t.dataset.fav) { e.stopPropagation(); toggleFav(t.dataset.fav); return; }
   if (t.dataset.sec) { sec = t.dataset.sec; cat = 'todas'; confirmKey = null; ui.sec = sec; lsSet('plantaorx:ui', ui); renderAll(); return; }
+  if (t.dataset.apcorr != null) { const it = curItem(); if (it) aplicarCorrecoes(it, t.dataset.apcorr.split(',').map(Number)); return; }
+  if (t.dataset.revstart) { rev = {s: sec, pulados: new Set()}; cat = 'rascunhos'; proximoRev(); return; }
   if (t.dataset.cat) { cat = t.dataset.cat; renderChips(); renderList(); return; }
   if (t.dataset.id && t.classList.contains('card')) { sel[sec] = t.dataset.id; addRecente(sec, t.dataset.id); confirmKey = null; renderChips(); renderList(); renderDetail(); if (innerWidth <= 860) scrollTo({top:0}); return; }
   if (t.dataset.aba != null) { const it = curItem(); abaSel[sec + it.id] = +t.dataset.aba; viewCombo[it.id] = false; confirmKey = null; renderDetail(); return; }
@@ -1220,7 +1409,11 @@ document.addEventListener('click', e => {
     case 'ps-ia': gerarPsIA(it, 'cxPs'); break;
     case 'combo-rx-undo': { const c = comboParts(it); delete drafts[c.kRx]; renderDetail(); toast('Alteração desfeita'); break; }
     case 'pront-open': guardarCaso(); pr = novoCaso(); pr.rxId = it.id; pr.rxAba = comboParts(it).ci; sec = 'prontuario'; renderAll(); scrollTo({top:0}); setTimeout(() => $('#pNotas')?.focus(), 30); break;
-    case 'revisado': mutate(x => { delete x.rascunho; }, 'Marcado como revisado'); break;
+    case 'revisado': mutate(marcarRevisado, 'Marcado como revisado'); break;
+    case 'rev-ok': mutate(marcarRevisado); toast('Revisado'); proximoRev(); break;
+    case 'rev-pular': rev.pulados.add(it.id); proximoRev(); break;
+    case 'rev-editar': $('#btnEdit').click(); break;
+    case 'rev-sair': rev = null; renderAll(); break;
     case 'blocos': openBlocos(); break;
     case 'juntar': addToCart(it, (sec === 'prescricoes' && (viewCombo[it.id] ?? true)) ? comboParts(it).ci : currentAba()); break;
   }
@@ -1732,13 +1925,50 @@ const hoje = () => new Date().toISOString().slice(0,10);
 function localHoje(){ const l = lsGet('plantaorx:local', null); return l && l.dia === hoje() ? l.local : ''; }
 const FORMATO = `FORMATO DE SAÍDA (obrigatório neste aplicativo; substitui qualquer instrução anterior sobre blocos de código):
 Responda SOMENTE com um objeto JSON válido, sem nenhum texto antes ou depois e sem crases, com exatamente estas chaves:
-"caixa1": cabeçalho, identificação, história da doença atual, comorbidades, medicações de uso contínuo e alergias;
-"caixa2": exame físico (e exames complementares, somente se informados). Personalize o exame para a queixa: além do modelo padrão, inclua o exame dirigido ao sistema da queixa principal (ex.: cefaleia → pupilas, rigidez de nuca, sinais meníngeos, pares cranianos, força, coordenação e marcha; dor abdominal → descompressão brusca, Murphy, Rovsing, Giordano; dor de garganta → oroscopia e linfonodos cervicais; lombalgia → palpação, Lasègue, força e reflexos; ITU → Giordano; trauma → segmento acometido, pulsos e sensibilidade distais). Para o que não foi informado, descreva como normal; o que for alteração informada, descreva como informado; nunca invente alteração;
-"caixa3": hipóteses diagnósticas, raciocinadas a partir do que o médico escreveu;
-"caixa4": condutas — escreva SOMENTE as condutas que o médico informou nos dados do caso (medicações, exames, reavaliação, internação, parecer, alta, orientações etc.), em lista com "-", com redação clínica. NÃO acrescente exames, reavaliação, orientações, encaminhamentos ou conversa com acompanhante que ele não escreveu; esta regra substitui o modelo fixo de condutas das instruções. Se ele não informou nenhuma conduta, escreva apenas "- Prescrevo medicações conforme prescrição.";
+"caixa1": cabeçalho, identificação, história da doença atual, comorbidades, medicações de uso contínuo e alergias. Se houver MODELO DE HDA DESTE MÉDICO abaixo, siga a estrutura, a ordem e o jeito de escrever dele, preenchendo com os dados do caso: trecho do modelo sem dado correspondente é omitido (nunca deixe "____"); as negativas de sinais de alarme do modelo só entram se o médico negou alarmes (ex.: "sem sinais de alarme", "nega …"); e "Comorbidades/Medicações/Alergias: Nega" do modelo só entram se ele negou;
+"caixa2": exame físico. EXAMES COMPLEMENTARES: só escreva "# Exames complementares" (ou linhas com ">>") se o médico escreveu RESULTADOS de exames nos dados do caso; os valores de exemplo das instruções (Hb 12,5, Leuco 10.900 etc.) são só formato e NUNCA podem aparecer; exame pedido e ainda sem resultado não entra aqui. Personalize o exame para a queixa: além do modelo padrão, inclua o exame dirigido ao sistema da queixa principal (ex.: cefaleia → pupilas, rigidez de nuca, sinais meníngeos, pares cranianos, força, coordenação e marcha; dor abdominal → descompressão brusca, Murphy, Rovsing, Giordano; dor de garganta → oroscopia e linfonodos cervicais; lombalgia → palpação, Lasègue, força e reflexos; ITU → Giordano; trauma → segmento acometido, pulsos e sensibilidade distais). Para o que não foi informado, descreva como normal; o que for alteração informada, descreva como informado; nunca invente alteração;
+"caixa3": hipóteses diagnósticas, raciocinadas a partir do que o médico escreveu. Depois delas, se o quadro tiver escore validado aplicável (CURB-65 e qSOFA em pneumonia/infecção; HEART, Wells e PERC em dor torácica/dispneia/TEP; Wells TVP; Centor/McIsaac em faringite; ABCD2 em AIT; Alvarado em dor em FID; CHA2DS2-VASc em FA; Glasgow em TCE/rebaixamento), escreva "# Escores:" e, em uma linha cada, o nome, o resultado e os critérios que pontuaram, calculados SÓ com dados informados (ex.: "- CURB-65: 2 (idade ≥ 65 anos, FR ≥ 30); ureia não informada."). Se nenhum se aplicar ou não houver dados, omita a seção;
+"caixa4": condutas, sucintas e específicas, em lista com "-". Parta do que o médico escreveu e DETALHE cada item: "sintomáticos" vira os medicamentos e doses da prescrição do PS informada (ex.: "- Dipirona 1 g EV e ondansetrona 4 mg EV."); "exames lab"/"laboratório" vira os exames pertinentes ao quadro, nomeados (ex.: "- Hemograma, PCR, ureia, creatinina, sódio e potássio."); "imagem"/"exame de imagem" vira o exame específico indicado ao quadro (ex.: "- TC de crânio sem contraste."). Não crie condutas de outro tipo que ele não escreveu, com uma exceção: se houver algo importante para a segurança (indicação de internação ou UTI, escore alto, sinal de alarme presente, exame alterado relevante), acrescente uma linha direta começando por "- Atenção:". Se ele não informou nenhuma conduta, escreva "- Prescrevo medicações conforme prescrição.";
+"gravidade": objeto {"destino": "alta" | "observacao" | "internacao" | "uti", "motivo": "uma frase curta com os dados que justificam"}, a sua avaliação do destino mais seguro pelo quadro, sinais vitais, escores e exames informados;
 "receita": o id da receita indicada abaixo, ou null.
 Dentro de cada caixa, texto puro pronto para prontuário eletrônico: títulos no formato "# Título:", listas apenas com "-", quebras de linha como \n, sem negrito nem outro Markdown.
 SEM LACUNAS: nunca escreva "[completar]", "completar", "___", colchetes ou campos para preencher. Use as informações fornecidas para construir o texto e o raciocínio; o que não foi informado é omitido ou escrito de forma neutra (ex.: comorbidades não informadas → "- Nega" só se o médico negou; senão omita a linha). Nunca invente dados.`;
+/* ---------- HDA da biblioteca como estrutura do prontuário ---------- */
+function hdaModelos(rxIt, notas){
+  const H = state.data.hdas.itens, out = [];
+  const add = id => { const h = id && H.find(x => x.id === id); if (h && !out.includes(h) && h.id !== HDA_GERAL) out.push(h); };
+  if (rxIt?.hda) { add(rxIt.hda); return out; }
+  const STOP = new Set(['dias','horas','anos','semana','semanas','paciente','refere','nega','sem','com','para','quadro','inicio','piora','melhora','hoje','ontem']);
+  const terms = [...new Set(norm(notas).split(/[^a-z0-9]+/).filter(t => t.length > 3 && !STOP.has(t) && !/^\d/.test(t)).map(t => t.slice(0, 5)))];
+  const pont = H.map(h => { const w = norm(h.nome).split(/[^a-z0-9]+/); let sc = 0; for (const t of terms) if (w.some(x => x.startsWith(t))) sc += 3; return [sc, h]; }).filter(x => x[0] >= 3).sort((a, b) => b[0] - a[0]);
+  pont.slice(0, 2).forEach(([, h]) => add(h.id));
+  const rc = rxCandidatas(notas, 1); if (rc.length === 1 && out.length < 3 && rc[0].hda) add(rc[0].hda); // rxCandidatas devolve a lista inteira quando nada combina
+  return out.slice(0, 3);
+}
+/* ---------- trava: exames que o médico não informou não entram no prontuário ---------- */
+const RE_LAB = /\b(hb|hgb|ht|leuco\w*|plaq\w*|pcr|vhs|ureia|ur|creat\w*|cr|na|k|tgo|tgp|ast|alt|bt|bd|ggt|lactato|ph|pco2|po2|hco3|trop\w*|ck|ckmb|d-?d[ií]mero|inr|tap|ttpa|glic\w*|hgt|lipase|amilase|bhcg|tsh|t4l?)\b\s*[:=]?\s*[<>]?\s*\d/i;
+const RE_IMG = /\b(rx|raio[- ]?x|radiografia|tc|tomo\w*|usg|us|ultrass\w*|rm|resson\w*|ecg|eletro\w*|doppler|eco\w*)\b[^\n]{0,80}\b(normal|norma[il]s|sem alter\w*|alterad\w*|evidenc\w*|mostr\w*|laudo|consolida\w*|derrame|fratura|ritmo|sinusal|supra|infra)/i;
+function temResultadoExame(c){
+  const t = [c.notas, c.exames?.out, c.exames?.lab, c.exames?.img, ...(c.evol || []).map(e => e.texto)].filter(Boolean).join('\n');
+  return RE_LAB.test(t) || RE_IMG.test(t);
+}
+function semExamesInventados(t){
+  const L = String(t || '').split('\n'); const out = []; let pula = false;
+  for (const l of L) {
+    if (/^\s*#+\s*Exames complementares/i.test(l)) { pula = true; continue; }
+    if (pula && /^\s*#/.test(l) && !/^\s*#+\s*Exames/i.test(l)) pula = false;
+    if (pula || /^\s*>>/.test(l)) continue;
+    out.push(l);
+  }
+  return out.join('\n').replace(/\n{3,}/g, '\n\n').trim();
+}
+function htmlGravidade(){
+  const g = pr.gravidade; if (!g || !pr.out) return '';
+  if (g.destino === 'internacao' || g.destino === 'uti') return `<div class="alerta-int" role="alert"><span class="ai-ico" aria-hidden="true">⚠</span><div><b>Indicação de ${g.destino === 'uti' ? 'UTI' : 'internação'}</b><p>${esc(g.motivo)}</p><small>Avaliação da IA pelo quadro, sinais vitais, escores e exames informados. A decisão é sua.</small></div>
+    <div class="ai-acts"><button class="btn primary sm" data-painel="internacao">Pedido de internação</button><button class="btn sm" data-jus="internacao">Justificar internação</button></div></div>`;
+  if (g.destino === 'observacao') return `<div class="alerta-obs"><b>Sugere observação</b> · ${esc(g.motivo)}</div>`;
+  return '';
+}
 function prRx(){ return pr.rxId ? state.data.prescricoes.itens.find(x => x.id === pr.rxId) : null; }
 function rxDoPront(){ return ['pRxPs', 'pRxCasa'].map(id => (document.getElementById(id)?.value || '').trim()).filter(Boolean).map((t, i, a) => a.length > 1 ? (i ? 'PARA CASA:\n' : 'NO PS:\n') + t : t).join('\n\n'); }
 function prRxText(it){ if (!it) return ''; const a = it.abas[Math.min(pr.rxAba, it.abas.length - 1)] || it.abas[0]; const t = render(a?.texto || ''); return qtd ? t : semQtd(t); }
@@ -1920,7 +2150,7 @@ function htmlFerramentas(){
   if (!pr.reav.hora) pr.reav.hora = horaAgora();
   const tab = (k, l) => `<button role="tab" aria-checked="${pr.tool===k}" data-tool="${k}">${l}</button>`;
   const chip = (attr, val, on, label) => `<button class="chip" ${attr}="${esc(val)}" aria-pressed="${!!on}">${esc(label)}</button>`;
-  let h = `<div class="paper"><div class="paper-head"><b>Textos rápidos</b><span class="hint">Sem IA. Você marca as opções e o texto se monta; dá para editar antes de copiar.</span></div>
+  let h = `<div class="paper tools-paper"><div class="paper-head"><b>Textos rápidos</b><span class="hint">Sem IA. Você marca as opções e o texto se monta; dá para editar antes de copiar.</span></div>
     <div class="tools"><div class="seg seg-tools" role="tablist">${tab('imagem','Pedido de imagem')}${tab('exames','Resultados de exames')}${tab('reav','Reavaliação')}${tab('escores','Escores e calculadoras')}</div>`;
   if (pr.tool === 'imagem') {
     const m = pr.img, e = exameImg(m.ex);
@@ -2004,6 +2234,7 @@ function renderPront(){
     </div></div>`;
   if (pr.loading) h += `<div class="pwait"><i></i>${pr.loading}</div>`;
   if (pr.erro) h += `<div class="perr">${esc(pr.erro)}</div>`;
+  h += htmlGravidade();
   const temEvol = (pr.evol || []).length;
   const partes = [pr.out && 'caixas 1 a 4', temEvol && 'evolução', pr.out && pr.jus != null && 'justificativa'].filter(Boolean);
   const copyBar = `<div class="copyall">${aiSample && pr.out ? `<button class="btn" data-revisar="1" ${pr.loading ? 'disabled' : ''}>🔎 Revisar prontuário</button>` : ''}<button class="btn primary" data-pcopyall="1">${pr.out && pr.jus != null ? 'Copiar prontuário + justificativa' : 'Copiar prontuário completo'}</button><span class="hint">${cap(partes.join(', ').replace(/, ([^,]*)$/, ' e $1'))}, na ordem, com as suas edições.</span></div>`;
@@ -2031,8 +2262,9 @@ function renderPront(){
       </div></div>`;
     if (pr.jus != null) { h += pbox('Justificativa · ' + esc(jusLabel()), 'pJ', v('pJ', pr.jus), 120); h += copyBar; }
   }
-  h += htmlFerramentas();
-  if (aiSample) h += htmlInternacao();
+  // pedido de exame de imagem: fica na coluna central, mas segue a regra do painel (um aberto por vez)
+  { const ab = ui.painel === 'imagem';
+    h += `<div class="paper img-card ${ab ? 'open' : ''}" id="painel-imagem"><button class="img-h" data-painel="imagem" aria-expanded="${ab}">${icoP('imagem')}<span>Pedido de exame de imagem</span><small class="hint">Monta o pedido com a indicação, sem IA</small><svg class="rail-chev" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg></button>${ab ? (pr.tool = 'imagem', htmlFerramentas()) : ''}</div>`; }
   if (rxIt) {
     const P = rxPartes(rxIt, Math.min(pr.rxAba, rxIt.abas.length - 1)); const f = t => qtd ? t : semQtd(t);
     const nm = `${esc(rxIt.nome)}${rxIt.abas.length > 1 ? ' · ' + esc(rxIt.abas[pr.rxAba]?.nome || '') : ''}`;
@@ -2065,6 +2297,8 @@ async function gerar(ajuste){
   let ctx = iaBase() + '\n\n' + FORMATO + '\n\nLocal do atendimento: ' + loc + '\n';
   if (rxIt) ctx += `\nReceita escolhida pelo médico: ${rxIt.nome}${rxIt.cid ? ' (CID ' + rxIt.cid + ')' : ''}. Texto da prescrição, para manter as condutas coerentes (não copie a receita nas condutas):\n${prRxText(rxIt)}\n\nNo campo "receita", devolva "${rxIt.id}".\n`;
   else { const cand = rxCandidatas(pr.notas); ctx += '\nReceitas disponíveis (id: nome). No campo "receita", devolva o id da mais compatível com o caso, ou null se nenhuma servir:\n' + cand.map(x => x.id + ': ' + x.nome).join('\n') + '\n'; }
+  const hdas = hdaModelos(rxIt, pr.notas);
+  if (hdas.length) ctx += `\nMODELO${hdas.length > 1 ? 'S' : ''} DE HDA DESTE MÉDICO (${hdas.length > 1 ? 'use o mais compatível com o caso; ' : ''}estrutura para a caixa 1; "____" são lugares de dado, nunca os copie):\n` + hdas.map(h => `--- ${h.nome}\n${render(h.abas[0]?.texto || '')}`).join('\n') + '\n';
   ctx += '\nDADOS DO CASO INFORMADOS PELO MÉDICO:\n' + pr.notas.trim();
   let msgs = [{role:'user', content:ctx}];
   if (ajuste && pr.msgs) msgs = [...pr.msgs, {role:'user', content:'Refaça o prontuário aplicando este ajuste, no mesmo formato JSON: ' + ajuste}];
@@ -2086,6 +2320,9 @@ async function gerar(ajuste){
     toast(`Prontuário pronto em ${seg(performance.now() - t0)} s${t1 ? ` · começou a aparecer em ${seg(t1 - t0)} s` : ''}`);
     const j = parseJsonLoose(r.text);
     pr.out = {caixa1:String(j.caixa1||''), caixa2:String(j.caixa2||''), caixa3:String(j.caixa3||''), caixa4:String(j.caixa4||'')};
+    if (!temResultadoExame(pr)) { const a = pr.out.caixa1 + pr.out.caixa2; pr.out.caixa1 = semExamesInventados(pr.out.caixa1); pr.out.caixa2 = semExamesInventados(pr.out.caixa2); if (a !== pr.out.caixa1 + pr.out.caixa2) toast('A IA escreveu exames que você não informou: removidos.', 4000); }
+    pr.gravidade = j.gravidade && typeof j.gravidade === 'object' ? {destino: String(j.gravidade.destino || '').toLowerCase(), motivo: String(j.gravidade.motivo || '')} : null;
+    if (pr.gravidade?.destino === 'uti') pr.perfil = 'uti';
     pr.msgs = [...msgs, {role:'assistant', content:r.text}];
     pr.ed = {pRxPs: pr.ed.pRxPs, pRxCasa: pr.ed.pRxCasa}; pr.jus = null; pr.ajuste = '';
     if (!rxIt && j.receita && state.data.prescricoes.itens.some(x => x.id === j.receita)) { pr.rxId = j.receita; pr.rxAba = 0; pr.rxAuto = true; delete pr.ed.pRxPs; delete pr.ed.pRxCasa; }
@@ -2488,7 +2725,7 @@ async function iaChamada(input, opts, stream){
       body:JSON.stringify({cofre:store.cofre, messages, tier:opts.modelTier || 'default', nivel:opts.nivel || '', stream})});
     if (!r.ok) {
       const j = await r.json().catch(() => ({}));
-      const err = new Error(j.erro || ('IA indisponível (' + r.status + ')'));
+      const err = new Error(r.status === 403 && /chave/i.test(j.erro || '') ? 'A IA não reconheceu o seu código. Abra o site pelo seu link pessoal (com o código depois do #). Se for a prévia de teste, cole o link da prévia seguido do mesmo código.' : (j.erro || ('IA indisponível (' + r.status + ')')));
       err.tentarSemStream = stream && ![400, 401, 403].includes(r.status); err.repetir = r.status >= 500 && !j.erro; throw err;
     }
     const tipo = r.headers.get('content-type') || '';
@@ -2873,7 +3110,7 @@ ${ctx}`;
     c.decisao = {...j, hora:horaAgora()};
   } catch (e) { c.decErro = erroIA(e); }
   c.decLoading = false; guardarCaso(c); renderCasos(); if (c !== pr) return; renderSide();
-  const sd = $('#prontSide'), dd = $('#decisao'); if (sd && dd) sd.scrollTo({top: dd.offsetTop - sd.offsetTop - 8, behavior:'smooth'});
+  if (ui.painel !== 'decisao') abrirPainel('decisao');
 }
 const CHAT_RAPIDAS = ['Quais diagnósticos graves não posso deixar passar?', 'Falta algum exame que mude a conduta?', 'Dá para dar alta com segurança?', 'Qual a melhor analgesia para este caso?', 'Quais critérios para internar?'];
 async function enviarChat(texto){
@@ -3018,10 +3255,10 @@ function dadosDoc(c){
   const ult = (c.evol || []).slice(-1)[0];
   return {idade, hd: hds.join('; '), cid: rx?.cid || '', hist, conds: conds.join('; '), ef, exames, evol: ult ? frasesCurtas(linhasUteis(ult.texto, 4).join(' '), 220) : ''};
 }
-function preencherDoc(texto, c){
+function preencherDoc(texto, c, opts = {}){
   const d = dadosDoc(c);
   const mapa = [
-    [/^Idade$/i, d.idade], [/^CID$/i, d.cid],
+    [/^Idade$/i, d.idade], [/^CID$/i, opts.semCid ? '' : d.cid],
     [/^(Resumo clínico|Resumo do caso|Quadro clínico.*|Achados clínicos.*|Motivo do atendimento)$/i, d.hist],
     [/^(Indicação clínica.*|Hipótese diagnóstica|Diagnóstico|Motivo|Motivo da transferência|Dúvida.*)$/i, d.hd],
     [/^(Exames realizados|Exames relevantes|Exames)$/i, d.exames],
@@ -3034,6 +3271,12 @@ function preencherDoc(texto, c){
   }).split('\n').filter(l => l !== '\u0000').join('\n').replace(/\n{3,}/g, '\n\n');
 }
 let docPac = {q:'', cat:'todas', id:null, pedido:''};
+// CID do pedido para o paciente aberto: o que o médico escolheu, senão o da doença ligada ao caso, senão o sugerido no modelo
+function cidPaciente(it){
+  if (it && CID_SEM.has(it.categoria)) return '';
+  if (docPac.cid != null) return docPac.cid;
+  return dadosDoc(pr).cid || it?.cid || '';
+}
 const DOC_SIN = [[/\b(tc|tomo|tomografia)\b/, 'tomografia tc'], [/\b(usg|us|ultrassom|ultrassonografia|eco)\b/, 'ultrassonografia'], [/\b(rx|raio|radiografia)\b/, 'radiografia'], [/\b(rm|rnm|ressonancia)\b/, 'ressonancia'],
   [/\b(lab|labs|laboratorio|laboratoriais|sangue|hemograma|pcr|vhs|eletrolitos|sodio|potassio|ureia|creatinina|troponina|d-dimero|dimero|tgo|tgp|bilirrubina|amilase|lipase|gasometria|lactato|coagulograma|tsh|beta-hcg|bhcg|eas|urina|urocultura|hemocultura)\b/, 'laboratorio'], [/\b(ecg|eletro)\b/, 'eletrocardiograma'], [/\b(parecer|interconsulta|avaliacao d[ao])\b/, 'parecer interconsulta'], [/\b(encaminh|referenc)/, 'encaminhamento'],
   [/\b(atestado|afastamento|dias)\b/, 'atestado'], [/\b(declaracao|comparecimento)\b/, 'declaracao comparecimento'], [/\b(transferencia|regulacao|vaga)\b/, 'transferencia'], [/\b(relatorio|pericia|inss)\b/, 'relatorio'], [/\b(sumario|alta)\b/, 'sumario alta'], [/\b(termo|recusa|consentimento)\b/, 'termo']];
@@ -3051,6 +3294,12 @@ function melhorModelo(pedido){
   }
   return nota >= 2 ? melhor : null;
 }
+function regraCid(){
+  const it = docPac.id ? state.data.documentos.itens.find(x => x.id === docPac.id) : null;
+  if (it && CID_SEM.has(it.categoria)) return 'Não coloque CID neste documento (atestado ou declaração: só com autorização do paciente, e quem acrescenta é o médico).';
+  const c = cidCodigo($('#dpCid')?.value);
+  return c ? `O CID deste pedido é ${c}: escreva a linha "CID: ${c}" (em pedidos de exame, encaminhamentos, pareceres e relatórios) e não use outro CID.` : 'Não invente CID: sem CID informado, não escreva linha de CID.';
+}
 function abrirDocsPaciente(idInicial){
   if (!temConteudo(pr)) { toast('Escreva o caso primeiro'); return; }
   docPac = {q:'', cat:'todas', id:idInicial || null, pedido:''};
@@ -3064,10 +3313,10 @@ function abrirDocsPaciente(idInicial){
     const b = e.target.closest('button'); if (!b) return;
     if (b.hasAttribute('data-close-btn')) { closeModal(); return; }
     if (b.dataset.dpcat) { docPac.cat = b.dataset.dpcat; m.querySelectorAll('[data-dpcat]').forEach(x => x.setAttribute('aria-pressed', x === b)); renderDocsLista(); }
-    if (b.dataset.dpdoc) { docPac.id = b.dataset.dpdoc; renderDocsPaciente(); if (aiSample) setTimeout(() => $('#dpIA')?.click(), 30); }
-    if (b.id === 'dpVoltar') { docPac.id = null; docPac.pedido = ''; renderDocsPaciente(); }
+    if (b.dataset.dpdoc) { docPac.id = b.dataset.dpdoc; docPac.cid = null; renderDocsPaciente(); if (aiSample) setTimeout(() => $('#dpIA')?.click(), 30); }
+    if (b.id === 'dpVoltar') { docPac.id = null; docPac.pedido = ''; docPac.cid = null; renderDocsPaciente(); }
     if (b.id === 'dpGerar') { const v = ($('#dpPedido')?.value || '').trim(); if (!v) { $('#dpPedido')?.focus(); toast('Escreva o que precisa'); return; }
-      docPac.pedido = v; docPac.id = melhorModelo(v); renderDocsPaciente(); setTimeout(() => $('#dpIA')?.click(), 30); }
+      docPac.pedido = v; docPac.cid = null; docPac.id = melhorModelo(v); renderDocsPaciente(); setTimeout(() => $('#dpIA')?.click(), 30); }
     const ta = $('#dpTxt');
     if (b.id === 'dpCopy') { copy(ta.value, 'Documento copiado'); const it = state.data.documentos.itens.find(x => x.id === docPac.id); if (it) addRecente('documentos', it.id); }
     if (b.id === 'dpNext') { const i = ta.value.indexOf('___', ta.selectionEnd); const j = i >= 0 ? i : ta.value.indexOf('___'); if (j >= 0) { let k = j; while (ta.value[k] === '_') k++; ta.focus(); ta.setSelectionRange(j, k); } else toast('Sem campos em branco'); }
@@ -3076,7 +3325,7 @@ function abrirDocsPaciente(idInicial){
       const det = ($('#dpDet')?.value || '').trim();
       const base = ta.value.trim() || ('DOCUMENTO\n\n' + render('{cidade}, {data_extenso}.\n\n{medico}\n{crm}'));
       const pedidoTxt = docPac.pedido ? `O MÉDICO PEDIU: "${det || docPac.pedido}". Escreva exatamente esse documento (o título deve dizer o que é: parecer para a especialidade pedida, solicitação do exame pedido, atestado etc.). O DOCUMENTO abaixo serve só de referência de formato (cabeçalho, data, assinatura); o conteúdo deve atender ao pedido: num parecer, resumo do caso e a pergunta objetiva ao especialista; numa solicitação de exame, o exame pedido e a indicação clínica em uma frase. ` : '';
-      const prompt = `Você é médico emergencista no Brasil. ${pedidoTxt}Escreva o documento pronto para este paciente, a partir da história dele, de forma técnica, direta e concisa. Regras: mantenha a data, a cidade e a assinatura (linhas com o nome do médico e CRM) exatamente como estão; preencha todos os campos com o que está no caso e nos detalhes; ${REGRA_DIRETO} Paciente: use as iniciais "${pr.iniciais || ''}" no lugar do nome; nunca escreva documento, endereço ou telefone; campos que não se aplicam (testemunhas, endereço, RG, creatinina não dosada etc.) devem ser removidos; em atestado sem número de dias informado, use 1 (um) dia, a data de hoje. Responda só com o documento, texto puro.
+      const prompt = `Você é médico emergencista no Brasil. ${pedidoTxt}Escreva o documento pronto para este paciente, a partir da história dele, de forma técnica, direta e concisa. Regras: mantenha a data, a cidade e a assinatura (linhas com o nome do médico e CRM) exatamente como estão; preencha todos os campos com o que está no caso e nos detalhes; ${regraCid()} ${REGRA_DIRETO} Paciente: use as iniciais "${pr.iniciais || ''}" no lugar do nome; nunca escreva documento, endereço ou telefone; campos que não se aplicam (testemunhas, endereço, RG, creatinina não dosada etc.) devem ser removidos; em atestado sem número de dias informado, use 1 (um) dia, a data de hoje. Responda só com o documento, texto puro.
 
 DETALHES INFORMADOS PELO MÉDICO: ${docPac.pedido ? '(ver pedido acima)' : (det || '(nenhum)')}
 
@@ -3095,10 +3344,13 @@ function renderDocsPaciente(){
   const box = $('#dpBox'); if (!box) return;
   if (docPac.id || docPac.pedido) {
     const it = docPac.id ? state.data.documentos.itens.find(x => x.id === docPac.id) : null;
-    const t = it ? preencherDoc(render(it.abas[0]?.texto || ''), pr) : '';
+    const cidP = cidPaciente(it);
+    const t = it ? comCid(cidP, () => preencherDoc(render(it.abas[0]?.texto || ''), pr, {semCid: CID_SEM.has(it.categoria)})) : '';
+    const campoCid = !it || !CID_SEM.has(it.categoria) ? `<label class="sa-det"><span>CID do pedido</span><input id="dpCid" list="cidLista" value="${esc(cidP)}" placeholder="Ex.: R07.4" autocomplete="off" spellcheck="false"></label>${cidListaHtml()}` : '<p class="hint" style="margin:0">CID em atestado ou declaração só com autorização do paciente: não é preenchido sozinho.</p>';
     box.innerHTML = `<h3>${esc(docPac.pedido ? cap(docPac.pedido) : it.nome)} · ${esc(pr.iniciais || 'paciente')}</h3>
       ${docPac.pedido ? `<p class="hint" style="margin:0">${it ? 'Formato baseado no modelo "' + esc(it.nome) + '".' : 'Sem modelo parecido: escrito do zero.'}</p>` : ''}
       <label class="sa-det"><span>${docPac.pedido ? 'Pedido (pode ajustar e reescrever)' : 'Detalhes (opcional)'}</span><input id="dpDet" value="${esc(docPac.pedido)}" placeholder="Ex.: 3 dias de afastamento; encaminhar à neurologia com prioridade" autocomplete="off"></label>
+      ${campoCid}
       <textarea id="dpTxt" class="rx" spellcheck="false" style="min-height:380px">${esc(t)}</textarea>
       <div class="edit-actions"><button class="btn primary" id="dpCopy">Copiar</button>${aiSample ? '<button class="btn" id="dpIA">Reescrever com os detalhes</button>' : '<button class="btn" id="dpNext">Próximo campo</button>'}<button class="btn" id="dpVoltar">Outro documento</button><button class="btn" data-close-btn>Fechar</button></div>`;
     return;
@@ -3132,15 +3384,51 @@ function htmlPtMeta(){
   const entrou = new Date(pr.criado).toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
   return `<span class="pt-chip">Entrada ${entrou} · há ${tempoTxt(Date.now() - pr.criado)}</span>${reavChip(pr)}<span class="pt-chip ${restante(pr) < 30 * 60000 ? 'pouco' : ''}">Exclui em ${tempoTxt(restante(pr))}</span>`;
 }
+/* ---------- painel lateral do caso: trilho escuro em sanfona (abre um por vez) ---------- */
+const ICO_P = {
+  pend:'<path d="M10 6h10M10 12h10M10 18h10"/><path d="m3.5 6 1.5 1.5L7.5 5M3.5 12l1.5 1.5L7.5 11M3.5 18l1.5 1.5L7.5 17"/>',
+  reav:'<circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M9 2h6"/>',
+  exames:'<path d="M9 3h6M10 3v6L5 18a2 2 0 0 0 1.7 3h10.6A2 2 0 0 0 19 18l-5-9V3"/><path d="M7.5 14h9"/>',
+  imagem:'<path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3"/><circle cx="12" cy="12" r="3.5"/>',
+  escores:'<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 7h8M8 11h1M12 11h1M16 11h0M8 15h1M12 15h1M16 11v6"/>',
+  decisao:'<path d="M12 3v18M5 6h11l3 3-3 3H5z"/>',
+  internacao:'<path d="M3 19V6M3 15h18v4M21 15v-2.5a3 3 0 0 0-3-3h-7V15"/><circle cx="7" cy="11.5" r="2"/>',
+  chat:'<path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12Z"/>'
+};
+const icoP = k => `<svg class="rail-ico" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${ICO_P[k] || ''}</svg>`;
+function painelItens(){
+  const nPend = pendAbertas(pr).length, nChat = (pr.chat || []).filter(m => m.role === 'user').length, nEv = (pr.evol || []).length;
+  const ferr = k => () => { pr.tool = k; return htmlFerramentas(); };
+  const L = [
+    {k:'pend', l:'Pendências', d:'O que falta: exames, pareceres, reavaliações', n: nPend || '', html: htmlPend},
+    {k:'reav', l:'Reavaliação', d:'Texto da reavaliação e evolução do paciente', n: nEv || '', html: ferr('reav')},
+    {k:'exames', l:'Resultados de exames', d:'Digite ou cole os resultados para a evolução', html: ferr('exames')},
+    {k:'escores', l:'Escores', d:'CURB-65, HEART, Wells, qSOFA e outros', html: ferr('escores')}];
+  if (aiSample) L.push(
+    {k:'decisao', l:'Decisão', d:'Destino sugerido e próximos exames', n: pr.decisao ? '●' : '', nCls: pr.decisao ? 'nv-' + (DESTINOS[pr.decisao.destino]?.nv || '') : '', html: htmlDecisao},
+    {k:'internacao', l:'Pedido de internação', d:'Junta HDA, exames e reavaliações e escreve a justificativa', n: pr.intern ? '✓' : (['internacao','uti'].includes(pr.gravidade?.destino) ? '!' : ''), nCls: !pr.intern && ['internacao','uti'].includes(pr.gravidade?.destino) ? 'alerta' : '', html: htmlInternacao},
+    {k:'chat', l:'Discussão', d:'Pergunte sobre o caso como a um colega', n: nChat || '', html: htmlChat});
+  return L;
+}
 function renderSide(){
   const el = $('#prontSide'); if (!el) return;
-  const st = el.scrollTop;
-  const tab = aiSample ? (ui.sideTab || 'decisao') : 'decisao';
-  const nPend = pendAbertas(pr).length, nChat = (pr.chat || []).filter(m => m.role === 'user').length;
-  const tabs = aiSample ? `<div class="seg side-tabs" role="tablist"><button role="tab" aria-checked="${tab === 'decisao'}" data-sidetab="decisao" title="Pendências e apoio à decisão">Decisão${nPend ? ` <span class="tb-n">${nPend}</span>` : ''}</button><button role="tab" aria-checked="${tab === 'chat'}" data-sidetab="chat">Discussão${nChat ? ` <span class="tb-n">${nChat}</span>` : ''}</button></div>` : '';
-  el.classList.toggle('chatmode', tab === 'chat');
-  el.innerHTML = tabs + (tab === 'chat' ? htmlChat() : htmlPend() + (aiSample ? htmlDecisao() + `<div class="ask-dock"><div class="tlab">Perguntar sobre o caso</div>${htmlAsk()}</div>` : ''));
-  if (tab === 'chat') { const l = el.querySelector('.chat-body'); if (l) l.scrollTop = l.scrollHeight; } else el.scrollTop = st;
+  const st = el.scrollTop, itens = painelItens();
+  let aberto = ui.painel === undefined ? 'pend' : ui.painel;
+  if (aberto && aberto !== 'imagem' && !itens.some(x => x.k === aberto)) aberto = 'pend';
+  el.classList.remove('chatmode');
+  el.innerHTML = `<div class="rail" role="region" aria-label="Ferramentas do caso">
+    <div class="rail-top"><span class="rail-tit">Ferramentas do caso</span></div>
+    ${itens.map(x => `<section class="rail-it ${x.k === aberto ? 'open' : ''}" id="painel-${x.k}">
+      <button class="rail-btn" data-painel="${x.k}" aria-expanded="${x.k === aberto}" title="${esc(x.d)}">${icoP(x.k)}<span class="rail-l">${x.l}</span>${x.n ? `<span class="rail-n ${x.nCls || ''}">${x.n}</span>` : ''}<svg class="rail-chev" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg></button>
+      ${x.k === aberto ? `<div class="rail-body">${x.html()}</div>` : ''}</section>`).join('')}
+  </div>`;
+  if (aberto === 'chat') { const l = el.querySelector('.chat-body'); if (l) l.scrollTop = l.scrollHeight; }
+  el.scrollTop = st;
+}
+function abrirPainel(k, rolar = true){
+  ui.painel = ui.painel === k && !rolar ? null : k; lsSet('plantaorx:ui', ui); renderSide();
+  if (ui.painel && rolar) { const sec = document.getElementById('painel-' + k); if (sec) { const sd = $('#prontSide'); if (innerWidth <= 860 || !sd || sd.scrollHeight <= sd.clientHeight) sec.scrollIntoView({block:'start', behavior:'smooth'}); else sd.scrollTo({top: sec.offsetTop - 8, behavior:'smooth'}); } }
+  if (ui.painel === 'chat') setTimeout(() => $('#chatIn')?.focus({preventScroll:true}), 30);
 }
 
 /* ---------- passagem de plantão ---------- */
@@ -3277,7 +3565,7 @@ function palBuscar(qq){
   }
   return out.sort((a, b) => b.sc - a.sc).slice(0, 12);
 }
-function palTexto(s, it){ const t = render(it.abas[0]?.texto || ''); return s === 'prescricoes' && !qtd ? semQtd(t) : t; }
+function palTexto(s, it){ const t = comCid(s === 'documentos' ? cidDoModelo(it) : '', () => render(it.abas[0]?.texto || '')); return s === 'prescricoes' && !qtd ? semQtd(t) : t; }
 function palHda(it){ const h = it.hda && state.data.hdas.itens.find(x => x.id === it.hda); return h ? render(h.abas[0]?.texto || '') : ''; }
 function palRender(){
   const box = $('#palRes'); if (!box) return;
@@ -3289,7 +3577,7 @@ function palRender(){
 }
 function palAcao(tipo, i){
   const r = pal.res[i]; if (!r) return;
-  if (tipo === 'copy') { copy(palTexto(r.s, r.it), copiadoMsg(r.it, `${r.s === 'prescricoes' ? 'Prescrição' : r.s === 'hdas' ? 'HDA' : 'Documento'} copiada: ${r.it.nome}`), copiadoMs(r.it)); addRecente(r.s, r.it.id); closeModal(); }
+  if (tipo === 'copy') { copy(palTexto(r.s, r.it), copiadoMsg(r.it, `${r.s === 'prescricoes' ? 'Prescrição' : r.s === 'hdas' ? 'HDA' : 'Documento'} copiada: ${r.it.nome}`, r.s), copiadoMs(r.it, r.s)); addRecente(r.s, r.it.id); closeModal(); }
   if (tipo === 'hda') { const t = palHda(r.it); if (t) { copy(t, 'HDA copiada'); closeModal(); } }
   if (tipo === 'open') { closeModal(); sec = r.s; cat = 'todas'; q = ''; const qi = $('#q'); if (qi) qi.value = ''; sel[r.s] = r.it.id; ui.sec = sec; lsSet('plantaorx:ui', ui); addRecente(r.s, r.it.id); renderAll(); scrollTo({top:0}); }
 }
@@ -3338,7 +3626,13 @@ document.addEventListener('click', e => {
   if (b.dataset.chatgo) { const i = $('#chatIn'); const t = i.value; if (!t.trim()) { i.focus(); return; } i.value = ''; ui.sideTab = 'chat'; lsSet('plantaorx:ui', ui); enviarChat(t); }
   if (b.dataset.chatcopy) { const m = pr.chat?.[+b.dataset.chatcopy]; if (m) copy(m.content, 'Resposta copiada'); }
   if (b.dataset.chatlimpar) { pr.chat = []; renderSide(); }
-  if (b.dataset.sidetab) { ui.sideTab = b.dataset.sidetab; lsSet('plantaorx:ui', ui); renderSide(); if (b.dataset.sidetab === 'chat') { if (innerWidth <= 860) $('#prontSide')?.scrollIntoView({block:'start', behavior:'smooth'}); setTimeout(() => $('#chatIn')?.focus({preventScroll:true}), 30); } }
+  if (b.dataset.sidetab) abrirPainel(b.dataset.sidetab === 'chat' ? 'chat' : 'decisao');
+  if (b.dataset.painel) {
+    const k = b.dataset.painel, antes = ui.painel, alterna = b.classList.contains('rail-btn') || b.classList.contains('img-h');
+    if (alterna && antes === k) { ui.painel = null; lsSet('plantaorx:ui', ui); antes === 'imagem' ? renderPront() : renderSide(); }
+    else if (k === 'imagem' || antes === 'imagem') { ui.painel = k; lsSet('plantaorx:ui', ui); renderPront(); if (!alterna || k === 'imagem') document.getElementById('painel-' + k)?.scrollIntoView({block:'nearest', behavior:'smooth'}); }
+    else abrirPainel(k, !alterna);
+  }
   if (b.dataset.passagem1) abrirPassagem(pr);
   if (b.dataset.saida) abrirSaida(b.dataset.saida);
   if (b.dataset.docpac) abrirDocsPaciente();

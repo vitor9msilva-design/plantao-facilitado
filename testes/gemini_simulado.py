@@ -8,9 +8,9 @@ class H(http.server.BaseHTTPRequestHandler):
         n=int(self.headers.get('content-length',0)); body=json.loads(self.rfile.read(n))
         prompt=' '.join(p.get('text','') for c in body.get('contents',[]) for p in c.get('parts',[]))
         global OUT
-        if '"destino"' in prompt: OUT=json.dumps({"destino":"observacao","confianca":"media","resumo":"Cefaleia com vômitos, sem sinais de alarme.","motivos":["dor controlada"],"sinais_de_gravidade":[],"exames":[{"exame":"TC de crânio","motivo":"afastar causa secundária","prioridade":"agora"}],"escores_uteis":[],"mudaria_destino":["déficit focal"]},ensure_ascii=False)
+        if '"caixa1"' in prompt: OUT=OUT0  # o prontuário vem primeiro: o pedido dele também cita "destino" (campo gravidade)
+        elif '"destino"' in prompt: OUT=json.dumps({"destino":"observacao","confianca":"media","resumo":"Cefaleia com vômitos, sem sinais de alarme.","motivos":["dor controlada"],"sinais_de_gravidade":[],"exames":[{"exame":"TC de crânio","motivo":"afastar causa secundária","prioridade":"agora"}],"escores_uteis":[],"mudaria_destino":["déficit focal"]},ensure_ascii=False)
         elif '"alta"' in prompt and '"ps"' in prompt: OUT=json.dumps({"titulo":"Cefaleia","ps":"USO ENDOVENOSO\n\n1) Dipirona 1 g EV","alta":"USO ORAL\n\n1) Naproxeno 500 mg","obs":""},ensure_ascii=False)
-        elif '"caixa1"' in prompt: OUT=OUT0
         else: OUT='Texto livre de teste: paciente V.M.S, 34 anos, cefaleia. Documento pronto sem lacunas.'
         sys.stderr.write('  cfg '+json.dumps(body.get('generationConfig'))+'\n')
         import os
