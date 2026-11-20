@@ -60,5 +60,9 @@ armazenamento (`store`: Claude db / Supabase RPC / local) · estado · filtro ·
 1. Edite `fonte/template.html` ou `fonte/base.json`.
 2. Rode `python3 fonte/build_netlify.py "https://rwlxqhpwneixapklovmn.supabase.co" "sb_publishable_3RbE169QpJSx4VFzXs7TaA_KwPJjQOp" ia rapid-handler`. Só o build do Netlify; o do Claude está congelado.
 3. Rode os testes de `testes/` antes de entregar.
-4. Para publicar, zipe o **conteúdo** de `prontos/netlify/` e arraste em Netlify → Deploys. Mudanças na função vão para Supabase → Edge Functions → rapid-handler → Code → Deploy.
+4. **Publicação (desde 20/11/2026): o Netlify está ligado ao GitHub** (`vitor9msilva-design/plantao-facilitado`, privado). Ele publica `prontos/netlify/` (veja `netlify.toml`); não há build no Netlify, por isso o build do passo 2 precisa estar no commit.
+   - **Tudo o que entra no `main` vai para o ar em cerca de 1 minuto.** Nunca faça commit de mudança no site direto no `main`.
+   - Faça cada mudança num branch próprio e abra um pull request. O Netlify gera um link de prévia (Deploy Preview) para o dono testar. A prévia usa os dados reais do Supabase.
+   - Só junte ao `main` quando o dono disser que pode publicar.
+   - Mudanças na função continuam manuais: Supabase → Edge Functions → rapid-handler → Code → Deploy.
 5. Ao terminar, diga ao dono **o que mudou** e **se precisa mexer no Supabase**.

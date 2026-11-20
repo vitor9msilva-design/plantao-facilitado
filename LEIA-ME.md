@@ -27,7 +27,7 @@ O site pessoal de pronto-socorro do **Dr. Vitor Machado da Silva (CRM-DF 36.322,
 
 | Versão | Endereço | IA | Onde guarda os dados |
 |---|---|---|---|
-| **Netlify** (hospital) | https://vmsplantoes.netlify.app + seu código secreto depois do `#` | Gemini, pela função `rapid-handler` do Supabase | Supabase |
+| **Netlify** (hospital) | https://vmsplantoes.netlify.app + seu código secreto depois do `#` (publicado pelo GitHub) | Gemini, pela função `rapid-handler` do Supabase | Supabase |
 | **Claude** | https://claude.ai/artifact/8LyrAGr3QPJqYdYAYbKCKi | Claude (da sua conta) | Armazenamento do próprio artifact |
 | **Cópia compartilhada** (amiga) | https://claude.ai/artifact/CH45xWfoRvAXfQyqxmYbyp | Claude (da conta dela) | Espaço privado de cada usuário |
 | **Arquivo para compartilhar** | `prontos/versao-compartilhar-sem-meus-dados.html` | Não | Só no navegador de quem abre |
@@ -70,8 +70,14 @@ ROADMAP-PRODUTO.md                 fases para transformar em produto
 
 ## 5. Como restaurar ou republicar
 
-**Netlify (o mais comum):**
-1. Gere o site, se mudou algo: `python3 fonte/build_netlify.py "https://rwlxqhpwneixapklovmn.supabase.co" "sb_publishable_3RbE169QpJSx4VFzXs7TaA_KwPJjQOp" ia rapid-handler`
+**Netlify (desde 20/11/2026, automático pelo GitHub):**
+- O site está ligado ao repositório privado **github.com/vitor9msilva-design/plantao-facilitado**. O Netlify publica a pasta `prontos/netlify/` (configurada em `netlify.toml`).
+- **Tudo o que entra no branch `main` vai para o ar sozinho**, em cerca de 1 minuto.
+- Cada mudança vem antes num *pull request*, com um link de prévia do Netlify. Teste no celular e, se estiver bom, diga "pode publicar". A prévia usa os seus dados reais.
+- Para desfazer uma publicação: Netlify → Deploys → escolha um deploy anterior → **Publish deploy**.
+
+**Netlify (manual, se um dia desligar o GitHub):**
+1. Gere o site: `python3 fonte/build_netlify.py "https://rwlxqhpwneixapklovmn.supabase.co" "sb_publishable_3RbE169QpJSx4VFzXs7TaA_KwPJjQOp" ia rapid-handler`
 2. Zipe o **conteúdo** da pasta `prontos/netlify/` (o index.html precisa ficar na raiz do zip).
 3. Netlify → seu site → **Deploys** → arraste o zip → espere "Published".
 
