@@ -10,7 +10,9 @@ ia = 'true' if (len(sys.argv) > 3 and sys.argv[3] == 'ia') else 'false'
 fn = sys.argv[4] if len(sys.argv) > 4 else 'plantao-ia'
 s = open(os.path.join(aqui, 'template.html'), encoding='utf-8').read()
 base = open(os.path.join(aqui, 'base.json'), encoding='utf-8').read().replace('</', '<\\/')
-s = s.replace('__BASE__', base).replace('<meta name="claude:viewport-fit-sides" content="cover">\n', '')
+rev_arq = os.path.join(aqui, 'revisao.json')  # apontamentos da revisão de doses (tela "Revisar um por um")
+rev = open(rev_arq, encoding='utf-8').read().replace('</', '<\\/') if os.path.exists(rev_arq) else '{}'
+s = s.replace('__BASE__', base).replace('__REVISAO__', rev).replace('<meta name="claude:viewport-fit-sides" content="cover">\n', '')
 cfg = f'<meta name="robots" content="noindex,nofollow"><script>window.PLANTAO_CFG={{url:{url!r},key:{key!r},ia:{ia},fn:{fn!r}}};</script>'
 i = s.index('<title>'); s = s[:i] + cfg + s[i:]
 pasta = os.path.join(aqui, '..', 'prontos', 'netlify'); os.makedirs(pasta, exist_ok=True)

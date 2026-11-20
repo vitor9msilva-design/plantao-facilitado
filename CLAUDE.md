@@ -20,7 +20,9 @@ O **Plantão Facilitado** é um app web de pronto-socorro (prescrições, docume
 | `supabase/funcao-rapid-handler/index.ts` | **A função de IA que está no ar e funcionando** (Edge Function `rapid-handler`). É a versão ajustada pelo Gemini em 20/11/2026; veja abaixo |
 | `supabase/banco/criar-banco.sql` | Tabela `docs` e funções `ler` e `gravar` |
 | `historico/funcao-versao-claude-17nov.ts` | Versão anterior da função, só para consulta |
-| `testes/` | Testes de ponta a ponta (Playwright, Gemini simulado e a função rodando em Deno). Veja `testes/COMO-RODAR.md` |
+| `fonte/revisao.json` | Apontamentos da revisão de doses (crítico/atenção + sugestão), por id de prescrição. O build injeta em `__REVISAO__`; alimentam a fila "Revisar um por um". Relatório legível em `revisao/` |
+| `FLUXO-DE-TRABALHO.md` | Como mudanças e revisões de conteúdo acontecem (branch → PR com prévia → "pode publicar" → main) |
+| `testes/` | `teste_ponta_a_ponta.py` (IA: Playwright, Gemini simulado e a função em Deno; veja `testes/COMO-RODAR.md`) e `teste_revisao_cid.py` (revisão e CID, sem IA) |
 
 **Nunca edite `prontos/`:** os arquivos ali são gerados. Edite `fonte/` e rode os builds.
 
@@ -54,6 +56,8 @@ armazenamento (`store`: Claude db / Supabase RPC / local) · estado · filtro ·
 - **Privacidade:**
   - Pacientes só com **iniciais**, que nunca vão para a IA. São apagados 4 h após a entrada ou na alta.
   - Nunca colocar no código o cofre, a chave do Gemini ou qualquer outro segredo.
+- **CID nos documentos:** os modelos de pedido, encaminhamento e relatório usam `{cid}`. O valor vem, nesta ordem, do CID escolhido pelo médico, da doença ligada ao paciente e do CID sugerido no modelo. **Atestados e declarações nunca recebem CID automático** (CFM 1.658/2002).
+- **Revisão de doses:** o Claude aponta em `fonte/revisao.json` e não altera a receita. A decisão é do médico, na tela de revisão.
 - **Direitos autorais:** os manuais comprados de terceiros (MedRoute/MedOpen) **não** podem ser copiados para o projeto.
 
 ## Como trabalhar aqui
