@@ -4,6 +4,7 @@ Este teste simula o caminho real **site do Netlify → função `rapid-handler` 
 
 ## Pré-requisitos
 - Python 3 com o Playwright (`pip install playwright && playwright install chromium`).
+  (Se o Chromium já estiver instalado em outro lugar, aponte com `CHROMIUM=/caminho/do/chrome`.)
 - Deno (`npm i deno`, ou https://deno.com).
 - O site já gerado em `prontos/netlify/` (`python3 fonte/build_netlify.py …`).
 

@@ -28,7 +28,7 @@ def montar(pg, ini):
     ok = pg.locator('#pC4').count() and pg.input_value('#pC4')
     return f"1º texto {primeiro and round(primeiro,1)} s · total {round(time.time()-t0,1)} s · {'OK' if ok else 'FALHOU'} {pg.locator('.perr').all_inner_texts()}"
 with sync_playwright() as p:
-    b = p.chromium.launch(); ctx = b.new_context(viewport={'width':1440,'height':900})
+    b = p.chromium.launch(executable_path=os.environ.get('CHROMIUM') or None); ctx = b.new_context(viewport={'width':1440,'height':900})
     ctx.route('**/rest/v1/**', rota); ctx.route('**/fonts.g*/**', lambda r: r.abort())
     pg = ctx.new_page(); erros = []; pg.on('pageerror', lambda e: erros.append(str(e)))
     pg.goto(SITE.as_uri() + '#' + COFRE); pg.wait_for_timeout(1200)
