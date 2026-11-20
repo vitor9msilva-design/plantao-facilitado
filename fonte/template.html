@@ -480,6 +480,23 @@ body:has(#pront:not([hidden])) .wrap{max-width:1760px}
   .pront #casos{display:grid}
   .pront{grid-template-columns:minmax(0,1fr)!important;grid-template-areas:'casos' 'main' 'side'!important}
 }
+/* aviso no copiar de rascunho */
+.toast.alerta{background:var(--field);color:var(--fg);border:1px solid var(--star);max-width:min(92vw,520px);text-align:center}
+/* celular: seções numa barra fixa embaixo, todas visíveis (antes o Prontuário ficava escondido à direita) */
+@media (max-width:860px){
+  :root{--nav-h:62px}
+  body{padding-bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0px))}
+  .sidebar{padding:10px 12px}
+  .sidebar .sections{position:fixed;left:0;right:0;bottom:0;z-index:45;display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:0;overflow:visible;padding:4px 4px env(safe-area-inset-bottom,0px);background:#0C1F1E;border-top:1px solid #1E3C38;box-shadow:0 -4px 16px rgba(0,0,0,.18)}
+  .sidebar .sec-btn{height:var(--nav-h);flex-direction:column;justify-content:center;gap:3px;padding:0 2px;font-size:11.5px;font-weight:500;line-height:1.1;text-align:center;border-radius:8px}
+  .sidebar .sec-btn[aria-selected="true"]{box-shadow:inset 0 3px 0 #14B8A6}
+  .sidebar .sec-btn .sec-ico{width:22px;height:22px}
+  .sidebar .sec-btn .n{display:none}
+  .sidebar .sec-l{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .toast{bottom:calc(14px + var(--nav-h) + var(--cart-h,0px) + env(safe-area-inset-bottom,0px))}
+  .cartbar{bottom:calc(10px + var(--nav-h) + env(safe-area-inset-bottom,0px))}
+  .ask-dock{bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0px))}
+}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 
@@ -1118,9 +1135,12 @@ function measure(){ const t = $('#top'); if (t) document.documentElement.style.s
 
 /* ---------------- ações ---------------- */
 let toastT;
-function toast(msg){ clearTimeout(toastT); let el = $('.toast'); if (!el) { el = document.createElement('div'); el.className = 'toast'; el.setAttribute('role','status'); document.body.appendChild(el); } el.textContent = msg; el.hidden = false; toastT = setTimeout(() => el.hidden = true, 2200); }
-function copy(text, msg){
-  const done = () => toast(msg || 'Copiado');
+function toast(msg, ms){ clearTimeout(toastT); let el = $('.toast'); if (!el) { el = document.createElement('div'); el.className = 'toast'; el.setAttribute('role','status'); document.body.appendChild(el); } el.textContent = msg; el.hidden = false; el.classList.toggle('alerta', !!ms); toastT = setTimeout(() => el.hidden = true, ms || 2200); }
+// Copiar de um item ainda não revisado: o aviso aparece junto, porque a faixa amarela pode ter saído da tela
+const copiadoMsg = (it, msg) => it?.rascunho ? (msg || 'Copiado') + '. Atenção: é rascunho, confira doses e quantidades.' : msg;
+const copiadoMs = it => it?.rascunho ? 5000 : undefined;
+function copy(text, msg, ms){
+  const done = () => toast(msg || 'Copiado', ms);
   try { navigator.clipboard.writeText(text).then(done, () => fallbackCopy(text, done)); } catch { fallbackCopy(text, done); }
 }
 function fallbackCopy(text, done){
@@ -1159,13 +1179,13 @@ document.addEventListener('click', e => {
   if (t.dataset.cat) { cat = t.dataset.cat; renderChips(); renderList(); return; }
   if (t.dataset.id && t.classList.contains('card')) { sel[sec] = t.dataset.id; addRecente(sec, t.dataset.id); confirmKey = null; renderChips(); renderList(); renderDetail(); if (innerWidth <= 860) scrollTo({top:0}); return; }
   if (t.dataset.aba != null) { const it = curItem(); abaSel[sec + it.id] = +t.dataset.aba; viewCombo[it.id] = false; confirmKey = null; renderDetail(); return; }
-  if (t.dataset.copyField) { const it = curItem(); copy(render(it[t.dataset.copyField])); return; }
+  if (t.dataset.copyField) { const it = curItem(); copy(render(it[t.dataset.copyField]), copiadoMsg(it), copiadoMs(it)); return; }
   const act = t.dataset.act; if (!act) return;
   const it = curItem();
   switch (act) {
     case 'back': sel[sec] = null; renderList(); renderDetail(); break;
     case 'copycid': copy(it.cid, 'CID copiado'); break;
-    case 'copy': { const v = $('#rx').value; copy(v, 'Copiado'); break; }
+    case 'copy': { const v = $('#rx').value; copy(v, copiadoMsg(it, 'Copiado'), copiadoMs(it)); break; }
     case 'save': { const ai = currentAba(); const k = dk(it, ai); const txt = unrender(drafts[k]); delete drafts[k];
       mutate(x => { x.abas[ai].texto = txt; }, 'Salvo no modelo'); break; }
     case 'restore': { const ai = currentAba(); const k = dk(it, ai);
@@ -1190,8 +1210,8 @@ document.addEventListener('click', e => {
       sel[sec] = null; rebuild(); renderAll(); toast('Excluído'); break; }
     case 'cats': openCats(); break;
     case 'combo': viewCombo[it.id] = true; confirmKey = null; renderDetail(); break;
-    case 'combo-copyall': { const t = ['cxHda','cxEx','cxHd'].map(id => (document.getElementById(id)?.value || '').trim()).filter(Boolean).join('\n\n'); copy(t, 'Copiado: ' + (document.getElementById('cxHda') ? 'HDA, exame físico e HD' : 'exame físico e HD')); break; }
-    case 'cbox-copy': { const el = document.getElementById(t.dataset.target); copy(el.value, 'Copiado'); aprender(t.dataset.target, el.value); break; }
+    case 'combo-copyall': { const t = ['cxHda','cxEx','cxHd'].map(id => (document.getElementById(id)?.value || '').trim()).filter(Boolean).join('\n\n'); copy(t, copiadoMsg(it, 'Copiado: ' + (document.getElementById('cxHda') ? 'HDA, exame físico e HD' : 'exame físico e HD')), copiadoMs(it)); break; }
+    case 'cbox-copy': { const el = document.getElementById(t.dataset.target); copy(el.value, copiadoMsg(it, 'Copiado'), copiadoMs(it)); aprender(t.dataset.target, el.value); break; }
     case 'orient': abrirOrient(document.getElementById(t.dataset.src)?.value || ''); break;
     case 'cbox-undo': delete comboDrafts[t.dataset.key]; renderDetail(); toast('Alteração desfeita'); break;
     case 'ex-save': { const c = comboParts(it); const v = unrender(comboDrafts[c.kEx] ?? c.exTxt); store.write('meta','ex_' + it.id,{texto:v}); delete comboDrafts[c.kEx]; rebuild(); renderDetail(); toast('Exame físico salvo para ' + it.nome); break; }
@@ -3269,7 +3289,7 @@ function palRender(){
 }
 function palAcao(tipo, i){
   const r = pal.res[i]; if (!r) return;
-  if (tipo === 'copy') { copy(palTexto(r.s, r.it), `${r.s === 'prescricoes' ? 'Prescrição' : r.s === 'hdas' ? 'HDA' : 'Documento'} copiada: ${r.it.nome}`); addRecente(r.s, r.it.id); closeModal(); }
+  if (tipo === 'copy') { copy(palTexto(r.s, r.it), copiadoMsg(r.it, `${r.s === 'prescricoes' ? 'Prescrição' : r.s === 'hdas' ? 'HDA' : 'Documento'} copiada: ${r.it.nome}`), copiadoMs(r.it)); addRecente(r.s, r.it.id); closeModal(); }
   if (tipo === 'hda') { const t = palHda(r.it); if (t) { copy(t, 'HDA copiada'); closeModal(); } }
   if (tipo === 'open') { closeModal(); sec = r.s; cat = 'todas'; q = ''; const qi = $('#q'); if (qi) qi.value = ''; sel[r.s] = r.it.id; ui.sec = sec; lsSet('plantaorx:ui', ui); addRecente(r.s, r.it.id); renderAll(); scrollTo({top:0}); }
 }
