@@ -1,0 +1,7 @@
+# segredos nunca entram no repositório
+.env
+*.env
+secrets*
+testes/_site_teste.html
+node_modules/
+__pycache__/
