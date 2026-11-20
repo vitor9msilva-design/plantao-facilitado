@@ -50,7 +50,11 @@ armazenamento (`store`: Claude db / Supabase RPC / local) · estado · filtro ·
 - Português do Brasil e medicamentos **registrados no Brasil**, com nome comercial. AINE preferido: **Toragesic (cetorolaco) ou naproxeno**. Corticoide nasal: **Nasonex ou Dymista**.
 - Toda receita gerada tem uma opção de **dor aguda intensa** (paracetamol + codeína ou tramadol).
 - **Não alterar doses** das receitas dele sem aprovação. O que for escrito pela IA ou por você entra como rascunho, para revisão.
-- **Conduta (caixa 4):** só o que o médico escreveu. Nada de exames, reavaliação ou orientações por conta própria.
+- **Conduta (caixa 4), regra de 20/11/2026:** sucinta, partindo do que o médico escreveu, mas **detalhando** cada item ("sintomáticos" → remédios e doses da prescrição do PS; "exames lab" → exames nomeados; "imagem" → exame específico). Não criar condutas de outro tipo; a única exceção é uma linha "- Atenção: …" quando houver algo importante para a segurança (internação/UTI, escore alto, sinal de alarme, exame alterado).
+- **Exames no prontuário:** só entram resultados que o médico informou. Além da regra no `FORMATO`, a função `semExamesInventados()` apaga a seção de exames quando `temResultadoExame()` não acha resultado nas anotações, nos exames ou na evolução.
+- **Estrutura da HDA:** o prontuário usa o modelo da biblioteca de HDAs (`hdaModelos()`: o da receita escolhida; senão, até 3 parecidos com as anotações).
+- **Escores e destino:** a IA calcula os escores aplicáveis (caixa 3, "# Escores:") só com dados informados e devolve `gravidade` ({destino, motivo}); internação/UTI mostram o aviso no topo e um alerta no painel lateral.
+- **Painel lateral do prontuário:** trilho escuro em sanfona (`renderSide`, `painelItens`): pendências, reavaliação, resultados de exames, pedido de imagem, escores, decisão, pedido de internação e discussão. Só uma seção aberta por vez (`ui.painel`).
 - **Nunca deixar lacunas** ("[completar]", "___", colchetes) em textos gerados.
 - Justificativa de imagem em **uma frase**. O pedido de internação tem cabeçalho fixo (veja `gerarInternacao`).
 - **Privacidade:**
