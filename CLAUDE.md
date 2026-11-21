@@ -56,6 +56,7 @@ armazenamento (`store`: Claude db / Supabase RPC / local) · estado · filtro ·
 - **Escores e destino:** a IA calcula os escores aplicáveis (caixa 3, "# Escores:") só com dados informados e devolve `gravidade` ({destino, motivo}); internação/UTI mostram o aviso no topo e um alerta no painel lateral.
 - **Painel lateral do prontuário:** trilho escuro em sanfona (`renderSide`, `painelItens`): pendências, reavaliação, resultados de exames, pedido de imagem, escores, decisão, pedido de internação e discussão. Só uma seção aberta por vez (`ui.painel`).
 - **Aviso de 1 hora (conferir exames e medicação):** cada paciente fica amarelo 1 h após a entrada ou a última conferência (`CONF_INT`, `confAte`, `precisaConferir`). "Conferido", "Reavaliar em 2h" e registrar uma reavaliação zeram a contagem. Aparece na barra lateral, no cabeçalho do paciente, na barra de pacientes e no título da aba; o aviso na tela sai uma vez por ciclo.
+- **Adaptar a receita no prontuário:** campo acima de "No PS / Para casa" (`adaptarRx`). O médico escreve "adicione X; retire Y"; a IA mexe só nisso e copia dose e formato das linhas da biblioteca (`linhasDaBiblioteca`). Selo "ajustada pela IA · confira" e botão "Desfazer".
 - **Nunca deixar lacunas** ("[completar]", "___", colchetes) em textos gerados.
 - Justificativa de imagem em **uma frase**. O pedido de internação tem cabeçalho fixo (veja `gerarInternacao`).
 - **Privacidade:**

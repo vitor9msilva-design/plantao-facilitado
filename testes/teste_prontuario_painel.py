@@ -23,6 +23,8 @@ RESPOSTA = {
     "gravidade": {"destino": "internacao", "motivo": "CURB-65 = 3 com hipotensão e taquipneia em idoso."},
     "receita": None}
 
+ADAPT = {"ps": "USO ENDOVENOSO\n\n1) Ondansetrona 4 mg/2 mL [Vonau®] ------------------------ 01 ampola\nAplicar 4 mg, via endovenosa lenta.", "casa": "USO NASAL\n\n1) Furoato de mometasona 50 mcg/jato [Nasonex®] ------------------------ 01 frasco\nAplicar 2 jatos em cada narina, 1 vez ao dia.", "obs": "Retirada a dipirona; incluída mometasona com a dose das suas receitas."}
+
 def rota(r):
     u = r.request.url
     if '/rest/v1/rpc/ler' in u: return r.fulfill(status=200, content_type='application/json', body='[]')
@@ -31,6 +33,10 @@ def rota(r):
         if r.request.method != 'POST': return r.fulfill(status=200, body='{}')
         b = json.loads(r.request.post_data or '{}'); txt = ' '.join(m.get('content', '') for m in b.get('messages', []) if isinstance(m.get('content'), str))
         pedidos.append(txt)
+        if not b.get('stream'):  # modo sem streaming: a função responde {"text": ...}
+            corpo = RESPOSTA if '"caixa1"' in txt else ADAPT if 'AJUSTAR a receita' in txt else 'ok'
+            return r.fulfill(status=200, content_type='application/json', body=json.dumps({'text': corpo if isinstance(corpo, str) else json.dumps(corpo, ensure_ascii=False)}, ensure_ascii=False))
+        if 'AJUSTAR a receita' in txt: return r.fulfill(status=200, content_type='text/plain; charset=utf-8', body=json.dumps(ADAPT, ensure_ascii=False))
         if '"caixa1"' in txt: return r.fulfill(status=200, content_type='text/plain; charset=utf-8', body=json.dumps(RESPOSTA, ensure_ascii=False))
         return r.fulfill(status=200, content_type='text/plain; charset=utf-8', body='ok')
     r.continue_()
@@ -78,6 +84,20 @@ with sync_playwright() as p:
     print('3) Com exames informados, a trava não apaga')
     pg.fill('#pNotas', 'masc 72a tosse 3d, Hb 12,5 Leuco 10900, rx torax com consolidacao em base D'); pg.click('#pGo'); pg.wait_for_timeout(1500)
     ok('Hb 12,5' in pg.input_value('#pC2'), 'exames informados permanecem')
+
+    print('4) Adaptar a receita por texto')
+    rx = pg.locator('#pRx option', has_text='Síndrome gripal').first.get_attribute('value')
+    pg.select_option('#pRx', rx); pg.wait_for_timeout(400)
+    antes_casa = pg.input_value('#pRxCasa')
+    ok(pg.locator('#pRxAdapt').count() == 1, 'campo "Adaptar a receita" aparece junto da receita')
+    pg.fill('#pRxAdapt', 'adicione mometasona; retire a dipirona'); pg.press('#pRxAdapt', 'Enter'); pg.wait_for_timeout(1500)
+    ped = next((t for t in reversed(pedidos) if 'AJUSTAR a receita' in t), '')
+    ok('Nasonex' in ped and 'LINHAS DAS RECEITAS DO MÉDICO' in ped, 'pedido leva a linha de mometasona das suas receitas')
+    ok('adicione mometasona; retire a dipirona' in ped and antes_casa[:40] in ped, 'pedido leva o que mudar e a receita atual')
+    ok('Nasonex' in pg.input_value('#pRxCasa') and 'Ondansetrona' in pg.input_value('#pRxPs'), 'caixas No PS e Para casa são atualizadas')
+    ok(pg.locator('.ptag', has_text='ajustada pela IA').count() >= 1 and 'Retirada a dipirona' in pg.locator('.adapt-obs').inner_text(), 'mostra o selo "ajustada pela IA" e o que mudou')
+    pg.click('#pRxDesfazer'); pg.wait_for_timeout(300)
+    ok(pg.input_value('#pRxCasa') == antes_casa, '"Desfazer" volta a receita anterior')
 
     pg.set_viewport_size({'width': 390, 'height': 844}); pg.wait_for_timeout(300)
     ok(pg.locator('#prontSide .rail').is_visible(), 'painel aparece no celular')
