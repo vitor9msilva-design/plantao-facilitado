@@ -297,6 +297,7 @@ body:has(#pront:not([hidden])) .wrap{max-width:1760px}
 .perg-x:hover{color:var(--warn-fg);border-color:var(--warn-line)}
 .perg input{height:38px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--fg);padding:0 10px;font:inherit;font-size:14px;min-width:0}
 .perg-go{justify-self:start}
+.key-aviso{padding:10px 12px;border-radius:var(--r-sm);background:var(--mid-bg);border:1px solid var(--mid);font-size:14px;line-height:1.45}
 .alerta-int{display:grid;grid-template-columns:auto 1fr;gap:6px 12px;align-items:start;padding:14px 16px;border-radius:var(--r);background:var(--warn-bg);border:1px solid var(--warn-line);color:var(--fg)}
 .alerta-int .ai-ico{font-size:22px;color:var(--warn-fg);line-height:1}
 .alerta-int b{color:var(--warn-fg);font-size:16px}.alerta-int p{margin:4px 0}.alerta-int small{color:var(--muted)}
@@ -844,7 +845,9 @@ const store = {
 function setStatus(s){
   const el = $('#sub'); if (!el) return;
   const txt = {semchave:'Abra pelo seu link pessoal', pendente:'Alterações aguardando envio', local:'Salvando neste navegador', carregando:'Conectando ao armazenamento…', nuvem:'Alterações salvas na nuvem', lento:'Armazenamento demorando a responder; usando a última cópia', erro:'Sem conexão com o armazenamento; usando cópia local'}[s];
-  el.textContent = txt; el.title = txt;
+  const fim = store.cofre ? ' · código …' + store.cofre.slice(-4) : '';
+  el.textContent = (ePrevia() ? 'Prévia de teste · ' : '') + txt + fim;
+  el.title = el.textContent + (store.cofre ? '. Confira se o final do código é o mesmo no site oficial e na prévia: códigos diferentes guardam edições em lugares diferentes.' : '');
 }
 
 /* ---------------- estado ---------------- */
@@ -1686,19 +1689,23 @@ async function restoreBackup(txt){
 
 /* ---------------- chave pessoal (versão publicada) ---------------- */
 function novaChave(){ const a = new Uint8Array(24); crypto.getRandomValues(a); return 'rx' + Array.from(a, b => 'abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789'[b % 57]).join(''); }
+const ePrevia = () => /^deploy-preview-\d+--/.test(location.hostname);
 function openKeyScreen(){
   openModal(`<h3>Abra pelo seu link pessoal</h3>
     <p style="margin:0">Suas receitas editadas ficam guardadas numa chave secreta, que vai no final do link. Se você já tem o link, abra o site por ele (pelos favoritos ou pelo WhatsApp).</p>
     <div class="field"><label for="kCola">Já tenho a chave ou o link</label><input id="kCola" placeholder="Cole aqui o link ou a chave" autocomplete="off"></div>
     <div class="edit-actions"><button class="btn primary" style="flex:0 0 auto" id="kUsar">Usar esta chave</button></div>
     <hr style="border:0;border-top:1px solid var(--line);width:100%">
-    <p class="hint" style="margin:0">Primeira vez? Crie a sua chave e salve o link que vai aparecer.</p>
-    <div class="edit-actions"><button class="btn" id="kNova">Criar minha chave</button></div>`);
+    ${ePrevia() ? `<p class="key-aviso" style="margin:0"><b>Esta é uma prévia de teste.</b> Cole aqui o mesmo link (ou código) do site oficial. Não crie uma chave nova na prévia: tudo o que você revisar ou editar iria para outro lugar e não apareceria no site oficial.</p>`
+      : `<p class="hint" style="margin:0">Primeira vez? Crie a sua chave e salve o link que vai aparecer. <b>Se você já usa o site, não crie outra:</b> uma chave nova começa vazia, sem as suas receitas revisadas.</p>
+    <div class="edit-actions"><button class="btn" id="kNova">Criar minha chave</button></div>`}`);
   const ov = $('#layer .overlay'); ov.removeAttribute('data-close');
   $('#kUsar').addEventListener('click', () => { const v = $('#kCola').value.trim(); const k = v.includes('#') ? v.split('#').pop() : v;
     if (!/^[A-Za-z0-9_-]{24,}$/.test(k)) { toast('Chave inválida. Cole o link completo que você salvou.'); return; }
     location.hash = k; location.reload(); });
-  $('#kNova').addEventListener('click', () => { location.hash = novaChave(); location.reload(); });
+  $('#kNova')?.addEventListener('click', e => { const b = e.currentTarget;
+    if (!b.dataset.ok) { b.dataset.ok = '1'; b.textContent = 'Tenho certeza: criar uma chave nova e vazia'; b.classList.add('danger'); return; }
+    location.hash = novaChave(); location.reload(); });
 }
 
 /* ---------------- blocos rápidos ---------------- */
