@@ -22,7 +22,7 @@ O **Plantão Facilitado** é um app web de pronto-socorro (prescrições, docume
 | `historico/funcao-versao-claude-17nov.ts` | Versão anterior da função, só para consulta |
 | `fonte/revisao.json` | Apontamentos da revisão de doses (crítico/atenção + sugestão), por id de prescrição. O build injeta em `__REVISAO__`; alimentam a fila "Revisar um por um". Relatório legível em `revisao/` |
 | `FLUXO-DE-TRABALHO.md` | Como mudanças e revisões de conteúdo acontecem (branch → PR com prévia → "pode publicar" → main) |
-| `testes/` | `teste_ponta_a_ponta.py` (IA: Playwright, Gemini simulado e a função em Deno; veja `testes/COMO-RODAR.md`) e `teste_revisao_cid.py` (revisão e CID, sem IA) |
+| `testes/` | `teste_ponta_a_ponta.py` (IA: Playwright, Gemini simulado e a função em Deno; veja `testes/COMO-RODAR.md`) `teste_revisao_cid.py` (revisão e CID), `teste_prontuario_painel.py` (prontuário e painel) e `teste_aviso_conferir.py` (aviso de 1 h); os três últimos não precisam de IA |
 
 **Nunca edite `prontos/`:** os arquivos ali são gerados. Edite `fonte/` e rode os builds.
 
@@ -55,6 +55,8 @@ armazenamento (`store`: Claude db / Supabase RPC / local) · estado · filtro ·
 - **Estrutura da HDA:** o prontuário usa o modelo da biblioteca de HDAs (`hdaModelos()`: o da receita escolhida; senão, até 3 parecidos com as anotações).
 - **Escores e destino:** a IA calcula os escores aplicáveis (caixa 3, "# Escores:") só com dados informados e devolve `gravidade` ({destino, motivo}); internação/UTI mostram o aviso no topo e um alerta no painel lateral.
 - **Painel lateral do prontuário:** trilho escuro em sanfona (`renderSide`, `painelItens`): pendências, reavaliação, resultados de exames, pedido de imagem, escores, decisão, pedido de internação e discussão. Só uma seção aberta por vez (`ui.painel`).
+- **Aviso de 1 hora (conferir exames e medicação):** cada paciente fica amarelo 1 h após a entrada ou a última conferência (`CONF_INT`, `confAte`, `precisaConferir`). "Conferido", "Reavaliar em 2h" e registrar uma reavaliação zeram a contagem. Aparece na barra lateral, no cabeçalho do paciente, na barra de pacientes e no título da aba; o aviso na tela sai uma vez por ciclo.
+- **Adaptar a receita no prontuário:** campo acima de "No PS / Para casa" (`adaptarRx`). O médico escreve "adicione X; retire Y"; a IA mexe só nisso e copia dose e formato das linhas da biblioteca (`linhasDaBiblioteca`). Selo "ajustada pela IA · confira" e botão "Desfazer".
 - **Nunca deixar lacunas** ("[completar]", "___", colchetes) em textos gerados.
 - Justificativa de imagem em **uma frase**. O pedido de internação tem cabeçalho fixo (veja `gerarInternacao`).
 - **Privacidade:**

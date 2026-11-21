@@ -249,6 +249,9 @@ body:has(#pront:not([hidden])) .wrap{max-width:1760px}
 .dp-it:hover{border-color:var(--accent);background:var(--accent-soft)}
 .dp-it b{font-weight:600;font-size:14px}.dp-it small{color:var(--muted);font-size:12px}
 .pt-docs{border-color:var(--accent);color:var(--accent);font-weight:600}
+.adapt-rx{padding:12px 14px;display:grid;gap:6px;border-color:var(--accent)}
+.adapt-rx .prow{display:flex;gap:8px;flex-wrap:wrap}.adapt-rx input{flex:1 1 260px;min-width:0}.adapt-rx .btn{flex:none}
+.adapt-obs{margin:0;padding:0 2px}
 .rx-duo{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;align-items:start}
 @media (max-width:1100px){.rx-duo{grid-template-columns:minmax(0,1fr)}}
 .rx-full{margin-top:4px}.rx-full>summary{cursor:pointer;color:var(--muted);font-size:13.5px;padding:6px 2px}
@@ -335,6 +338,15 @@ body:has(#pront:not([hidden])) .wrap{max-width:1760px}
   .casos-head,#casos>.hint{display:none}}
 @media (max-width:480px){.sec-btn span[aria-hidden]{display:none}}
 @media (max-width:860px){.sections{grid-auto-columns:minmax(118px,1fr);overflow-x:auto;padding-bottom:2px;scrollbar-width:thin}}
+.conf-chip{justify-self:start;display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:12.5px;font-weight:600;border-radius:6px;padding:2px 8px;background:var(--surface-2);color:var(--muted)}
+.conf-chip.on{background:#FFE7A8;color:#6B4A00;border:1px solid #E8A33D;padding:4px 6px 4px 10px;animation:pulse 1.6s ease-in-out infinite}
+.conf-chip .mini{height:28px;background:#fff;border-color:#E8A33D;color:#6B4A00;font-weight:600}
+:root[data-theme="dark"] .conf-chip.on{background:#3A2A0C;color:#F2C14E}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .conf-chip.on{background:#3A2A0C;color:#F2C14E}}
+.sb-p.conferir{background:rgba(242,193,78,.14);border-color:#E8A33D;box-shadow:inset 3px 0 0 #F2C14E}
+.sb-p.conferir.on{background:rgba(242,193,78,.22)}
+.sb-conf{font-size:11.5px;font-weight:600;color:#F2C14E}
+.pchip.conferir{border-color:#E8A33D;background:#FFF3D6}.pchip.conferir span{color:#8A5A00;font-weight:600}
 .reav-chip{justify-self:start;font-size:12.5px;font-weight:600;border-radius:6px;padding:2px 8px;background:var(--surface-2);color:var(--muted);font-variant-numeric:tabular-nums}
 .reav-chip.perto{background:var(--mid-bg);color:var(--mid)}
 .reav-chip.atras{background:var(--warn-bg);color:var(--warn-fg);animation:pulse 1.4s ease-in-out infinite}
@@ -1635,6 +1647,68 @@ function rxPartes(it, ai){
   return {ps: renumerar(ps), casa, sugerido};
 }
 window.__pf = {rxPartes:(...a) => rxPartes(...a), itens:() => state.data.prescricoes.itens};
+/* ---------- adaptar a receita do caso por pedido em texto ("adicione mometasona; retire dipirona") ---------- */
+function htmlAdaptarRx(){
+  if (!aiSample) return '';
+  return `<div class="paper adapt-rx"><div class="prow"><input id="pRxAdapt" value="${esc(pr.rxPedido || '')}" placeholder="Adaptar a receita. Ex.: adicione mometasona; retire a dipirona; troque o antibiótico por azitromicina" autocomplete="off">
+    <button class="btn primary" id="pRxAdaptGo" ${pr.rxAdaptLoading ? 'disabled' : ''}>${pr.rxAdaptLoading ? 'Ajustando…' : 'Adaptar'}</button>${pr.rxAntes ? '<button class="btn" id="pRxDesfazer">Desfazer</button>' : ''}</div>
+    ${pr.rxObs ? `<p class="hint adapt-obs">${esc(pr.rxObs)}</p>` : '<p class="hint adapt-obs">A IA mexe só no que você pedir e usa as doses das suas receitas quando o remédio já existe na biblioteca.</p>'}</div>`;
+}
+// linhas das receitas do médico com os remédios citados no pedido: a IA copia dose e formato delas
+function linhasDaBiblioteca(pedido){
+  const STOP = new Set(['adicione','adicionar','acrescente','acrescentar','inclua','incluir','coloque','colocar','retire','retirar','tire','tirar','remova','remover','troque','trocar','substitua','substituir','para','pelo','pela','mais','menos','tambem','receita','dose','casa','oral','venoso','endovenoso','agora','dias','vezes','horas','comprimido','comprimidos','frasco','spray','jatos','apenas','somente','depois','antes','sintomaticos','antibiotico']);
+  const termos = [...new Set(norm(pedido).split(/[^a-z0-9]+/).filter(t => t.length >= 4 && !STOP.has(t)))];
+  if (!termos.length) return [];
+  const achados = new Map();
+  for (const it of state.data.prescricoes.itens) for (const a of it.abas) {
+    const L = render(a.texto).split('\n');
+    L.forEach((l, i) => {
+      if (!/^\s*\d+\)/.test(l)) return;
+      const n = norm(l); const t = termos.find(x => n.includes(x)); if (!t) return;
+      const bloco = [l.trim()]; for (let k = i + 1; k < Math.min(i + 5, L.length); k++) { if (!L[k].trim() || /^\s*\d+\)/.test(L[k]) || /^(USO|OU|Orienta|Retorno|Se )/i.test(L[k].trim())) break; bloco.push(L[k].trim()); }
+      const chave = bloco.join('\n'); const lista = achados.get(t) || []; if (!lista.includes(chave) && lista.length < 3) lista.push(chave); achados.set(t, lista);
+    });
+  }
+  return [...achados.values()].flat().slice(0, 9);
+}
+async function adaptarRx(){
+  const c = pr, pedido = ($('#pRxAdapt')?.value || '').trim();
+  if (!pedido) { $('#pRxAdapt')?.focus(); toast('Escreva o que mudar na receita'); return; }
+  const ps = ($('#pRxPs')?.value ?? c.ed.pRxPs ?? '').trim(), casa = ($('#pRxCasa')?.value ?? c.ed.pRxCasa ?? '').trim();
+  const refs = linhasDaBiblioteca(pedido);
+  const prompt = `Você é médico emergencista no Brasil e vai AJUSTAR a receita deste paciente conforme o pedido do médico. Responda SOMENTE com JSON {"ps": "...", "casa": "...", "obs": "..."}.
+PEDIDO DO MÉDICO: "${pedido}"
+REGRAS:
+- Mude só o que foi pedido. Todo o resto continua idêntico, palavra por palavra (doses, quantidades, orientações).
+- Adicionar: medicamento injetável/EV/IM/inalatório de ação imediata vai em "ps"; oral, nasal, tópico, oftálmico e otológico vão em "casa", salvo pedido contrário. Retirar: apague o item inteiro (nome e posologia) e renumere.
+- Use o mesmo formato da receita: seção "USO ..." quando mudar a via, "N) Nome dose [Marca®] ------------------------ quantidade" e a posologia na linha de baixo.
+- Dose e posologia: se o remédio estiver nas LINHAS DAS RECEITAS DO MÉDICO abaixo, copie exatamente uma delas (a mais adequada ao caso). Se não estiver, use a dose adulta usual da bula brasileira, só medicamentos registrados no Brasil, com nome comercial; anti-inflamatório preferido Toragesic (cetorolaco) ou naproxeno; corticoide nasal Nasonex ou Dymista.
+- Sem lacunas, sem colchetes vazios, sem Markdown. Quebras de linha como \\n.
+- "obs": uma frase curta dizendo o que mudou e, se alguma dose NÃO veio das receitas do médico, qual.
+${refs.length ? 'LINHAS DAS RECEITAS DO MÉDICO:\n' + refs.join('\n---\n') + '\n' : ''}
+CASO (resumo): ${String(c.ed?.pC3 ?? c.out?.caixa3 ?? c.notas ?? '').slice(0, 600)}
+RECEITA ATUAL NO PS:
+${ps || '(vazia)'}
+RECEITA ATUAL PARA CASA:
+${casa || '(vazia)'}`;
+  c.rxPedido = pedido; c.rxAdaptLoading = true; renderPront();
+  try {
+    const r = await aiSample(prompt, {modelTier:'default', nivel:'low', cache:false});
+    const j = parseJsonLoose(r.text);
+    c.rxAntes = {ps, casa};
+    c.ed.pRxPs = String(j.ps ?? ps).trim(); c.ed.pRxCasa = String(j.casa ?? casa).trim();
+    c.rxObs = String(j.obs || '').trim(); c.rxAdapt = true; c.rxPedido = '';
+    toast('Receita ajustada · confira');
+  } catch (e) { toast(erroIA(e)); }
+  c.rxAdaptLoading = false; guardarCaso(c); if (c === pr) renderPront();
+}
+document.addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  if (b.id === 'pRxAdaptGo') adaptarRx();
+  if (b.id === 'pRxDesfazer' && pr.rxAntes) { pr.ed.pRxPs = pr.rxAntes.ps; pr.ed.pRxCasa = pr.rxAntes.casa; pr.rxAntes = null; pr.rxObs = ''; pr.rxAdapt = false; guardarCaso(pr); renderPront(); toast('Ajuste desfeito'); }
+});
+document.addEventListener('keydown', e => { if (e.target.id === 'pRxAdapt' && e.key === 'Enter') { e.preventDefault(); adaptarRx(); } });
+document.addEventListener('input', e => { if (e.target.id === 'pRxAdapt') pr.rxPedido = e.target.value; });
 async function gerarPsIA(it, alvoId){
   const el = document.getElementById(alvoId); if (!el) return;
   toast('Gerando prescrição do PS…');
@@ -2265,6 +2339,17 @@ function hdResumo(c){
   return (c.notas || '').trim().slice(0, 50) || 'Caso em branco';
 }
 function reavAte(c){ return c.reavAte || (c.criado + REAV_INT); }
+/* ---------- conferência de 1 h: o paciente muda de cor para lembrar de ver se exames saíram e medicação foi feita ---------- */
+const CONF_INT = 60 * 60 * 1000;
+function confAte(c){ return c.confAte || (c.criado + CONF_INT); }
+const precisaConferir = c => temConteudo(c) && Date.now() >= confAte(c);
+const esperaConf = c => Date.now() - (c.confEm || c.criado);   // tempo desde a entrada ou a última conferência
+function conferido(c){ c.confEm = Date.now(); c.confAte = Date.now() + CONF_INT; c.confAvisado = false; c.atualizado = Date.now(); salvarCasos(); renderCasos(); checarReav(); }
+function confChip(c){
+  if (!temConteudo(c)) return '';
+  if (precisaConferir(c)) return `<span class="conf-chip on" role="status">⚑ ${tempoTxt(esperaConf(c))} sem conferir: exames saíram? medicação foi feita?<button class="mini" data-conferido="${esc(c.id)}">Conferido</button></span>`;
+  return `<span class="conf-chip">✓ Conferir em ${tempoTxt(confAte(c) - Date.now())}</span>`;
+}
 function reavChip(c){
   const r = reavAte(c) - Date.now();
   if (r <= 0) return `<span class="reav-chip atras">⏰ Reavaliação atrasada ${tempoTxt(-r)}</span>`;
@@ -2275,11 +2360,12 @@ function checarReav(){
   for (const c of [...casos, ...(casos.includes(pr) ? [] : [pr])]) {
     if (!temConteudo(c)) continue;
     if (Date.now() >= reavAte(c)) { atras++; if (!c.reavAvisado) { c.reavAvisado = true; salvarCasos(); toast(`⏰ Hora de reavaliar ${c.iniciais || 'o paciente'}`); } }
+    else if (precisaConferir(c)) { atras++; if (!c.confAvisado) { c.confAvisado = true; salvarCasos(); toast(`⚑ ${c.iniciais || 'Paciente'}: 1 hora de espera. Confira exames e medicação.`, 6000); } }
   }
   const base = document.title.replace(/^\(\d+\) ⏰ /, '');
   document.title = atras ? `(${atras}) ⏰ ${base}` : base;
 }
-function reiniciarReav(c){ c.reavAte = Date.now() + REAV_INT; c.reavAvisado = false; salvarCasos(); renderCasos(); checarReav(); }
+function reiniciarReav(c){ c.reavAte = Date.now() + REAV_INT; c.reavAvisado = false; c.confEm = Date.now(); c.confAte = Date.now() + CONF_INT; c.confAvisado = false; salvarCasos(); renderCasos(); checarReav(); }
 function renderCasos(){
   const el = $('#casos'); if (!el) return;
   const lista = casos.slice().sort((a,b) => a.criado - b.criado);
@@ -2653,14 +2739,16 @@ function renderPront(){
   // pedido de exame de imagem: fica na coluna central, mas segue a regra do painel (um aberto por vez)
   { const ab = ui.painel === 'imagem';
     h += `<div class="paper img-card ${ab ? 'open' : ''}" id="painel-imagem"><button class="img-h" data-painel="imagem" aria-expanded="${ab}">${icoP('imagem')}<span>Pedido de exame de imagem</span><small class="hint">Monta o pedido com a indicação, sem IA</small><svg class="rail-chev" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg></button>${ab ? (pr.tool = 'imagem', htmlFerramentas()) : ''}</div>`; }
-  if (rxIt) {
-    const P = rxPartes(rxIt, Math.min(pr.rxAba, rxIt.abas.length - 1)); const f = t => qtd ? t : semQtd(t);
-    const nm = `${esc(rxIt.nome)}${rxIt.abas.length > 1 ? ' · ' + esc(rxIt.abas[pr.rxAba]?.nome || '') : ''}`;
-    h += `<div class="rx-duo">` + pbox(`No PS · EV/IM${P.sugerido ? ' <span class="ptag">sugestão · confira</span>' : ''}`, 'pRxPs', pr.ed.pRxPs ?? f(P.ps), 280,
+  if (rxIt || pr.ed.pRxPs != null || pr.ed.pRxCasa != null) {
+    const P = rxIt ? rxPartes(rxIt, Math.min(pr.rxAba, rxIt.abas.length - 1)) : {ps:'', casa:''}; const f = t => qtd ? t : semQtd(t);
+    const nm = rxIt ? `${esc(rxIt.nome)}${rxIt.abas.length > 1 ? ' · ' + esc(rxIt.abas[pr.rxAba]?.nome || '') : ''}` : 'montada para o caso';
+    const adapt = pr.rxAdapt ? ' <span class="ptag">ajustada pela IA · confira</span>' : '';
+    h += htmlAdaptarRx();
+    h += `<div class="rx-duo">` + pbox(`No PS · EV/IM${P.sugerido ? ' <span class="ptag">sugestão · confira</span>' : ''}${adapt}`, 'pRxPs', pr.ed.pRxPs ?? f(P.ps), 280,
       `<label class="toggle"><input type="checkbox" id="pQtd" ${qtd?'checked':''}><span class="sw"></span>Quantidades</label>${aiSample ? '<button class="mini" data-act="ps-ia-p">Gerar com IA</button>' : ''}`)
-      + pbox(`Para casa · ${nm}`, 'pRxCasa', pr.ed.pRxCasa ?? f(P.casa), 280,
+      + pbox(`Para casa · ${nm}${adapt}`, 'pRxCasa', pr.ed.pRxCasa ?? f(P.casa), 280,
       `<button class="mini" data-act="pjuntar">+ Juntar</button><button class="mini" data-act="orient" data-src="pRxCasa">Orientar paciente</button>`) + `</div>`;
-  } else if (pr.out) h += `<div class="welcome">Nenhuma receita da lista combina com o caso. Escolha uma no campo Receita, se quiser.</div>`;
+  } else if (pr.out) h += `<div class="welcome">Nenhuma receita da lista combina com o caso. Escolha uma no campo Receita ou monte aqui:</div>` + htmlAdaptarRx();
   $('#prontMain').innerHTML = h;
   renderSide();
   guardarCaso(); renderCasos();
@@ -3008,13 +3096,14 @@ document.addEventListener('click', e => {
     const ex = exameImg(m?.ex);
     const escX = pr.tool === 'escores' ? registrarEscore() : null;
     pr.evol = [...(pr.evol || []), {id:uid(), tipo: escX ? 'Escore · ' + escX.s.nome : pr.tool === 'reav' ? 'Reavaliação' : pr.tool === 'exames' ? 'Resultados de exames' : 'Exame de imagem' + (ex ? ' · ' + cap(ex.nome.replace('{seg}', m.seg || 'segmento')).split(' (')[0] : ''), hora: pr.tool === 'reav' ? (r.hora || horaAgora()) : pr.tool === 'exames' ? (pr.exames.hora || horaAgora()) : horaAgora(), texto:t}];
-    if (pr.tool === 'reav') { pr.reav = novoReav(); pr.reavAte = Date.now() + REAV_INT; pr.reavAvisado = false; } else if (pr.tool === 'imagem') pr.img = novoImg();
+    if (pr.tool === 'reav') { pr.reav = novoReav(); pr.reavAte = Date.now() + REAV_INT; pr.reavAvisado = false; pr.confEm = Date.now(); pr.confAte = Date.now() + CONF_INT; pr.confAvisado = false; } else if (pr.tool === 'imagem') pr.img = novoImg();
     renderPront(); toast('Adicionado à evolução'); setTimeout(() => document.querySelector('.evol .ev:last-child')?.scrollIntoView({block:'nearest', behavior:'smooth'}), 30);
   }
   if (b.dataset.evcopy) { const ev = pr.evol.find(x => x.id === b.dataset.evcopy); if (ev) copy(ev.texto, 'Copiado'); }
   if (b.dataset.evdel) { pr.evol = pr.evol.filter(x => x.id !== b.dataset.evdel); renderPront(); toast('Removido da evolução'); }
   if (b.dataset.evcopyall) { const t = evolTexto(); if (t) copy(t, 'Evolução copiada'); }
   if (b.id === 'pClear') { guardarCaso(); const keepLocal = pr.local; pr = novoCaso(); if (keepLocal) pr.local = keepLocal; renderPront(); scrollTo({top:0}); $('#pIni')?.focus(); toast('Novo paciente'); }
+  if (b.dataset.conferido) { e.stopPropagation(); const c = casos.find(x => x.id === b.dataset.conferido) || (pr.id === b.dataset.conferido ? pr : null); if (c) { conferido(c); if (c === pr) renderPront(); toast('Conferido. Próximo aviso em 1 hora.'); } return; }
   if (b.dataset.reav2h) { e.stopPropagation(); const c = casos.find(x => x.id === b.dataset.reav2h); if (c) { reiniciarReav(c); toast('Reavaliação de ' + (c.iniciais || 'paciente') + ' em 2 horas'); } return; }
   if (b.dataset.alta) { e.stopPropagation(); const id = b.dataset.alta; clearTimeout(altaT);
     if (altaPend === id) { altaPend = null; darAlta(id); } else { altaPend = id; renderCasos(); altaT = setTimeout(() => { altaPend = null; renderCasos(); }, 4000); } return; }
@@ -3056,8 +3145,8 @@ document.addEventListener('input', e => {
 document.addEventListener('change', e => {
   const t = e.target; if (!t.closest?.('#pront')) return;
   if (t.id === 'tEx') { pr.img = {...novoImg(), ex:t.value, urg:pr.img.urg}; const e = exameImg(t.value); if (e?.ind.length === 1) { pr.img.ind = 0; pr.img.quadro = e.ind[0].q; } renderPront(); }
-  if (t.id === 'pRx') { pr.rxId = t.value || null; pr.rxAba = 0; pr.rxAuto = false; delete pr.ed.pRxPs; delete pr.ed.pRxCasa; renderPront(); }
-  if (t.id === 'pRxAba') { pr.rxAba = +t.value; delete pr.ed.pRxPs; delete pr.ed.pRxCasa; renderPront(); }
+  if (t.id === 'pRx') { pr.rxId = t.value || null; pr.rxAba = 0; pr.rxAuto = false; delete pr.ed.pRxPs; delete pr.ed.pRxCasa; pr.rxAdapt = false; pr.rxAntes = null; pr.rxObs = ''; renderPront(); }
+  if (t.id === 'pRxAba') { pr.rxAba = +t.value; delete pr.ed.pRxPs; delete pr.ed.pRxCasa; pr.rxAdapt = false; pr.rxAntes = null; pr.rxObs = ''; renderPront(); }
   if (t.id === 'pQtd') { qtd = t.checked; delete pr.ed.pRxPs; delete pr.ed.pRxCasa; renderPront(); }
 });
 document.addEventListener('keydown', e => {
@@ -3770,7 +3859,7 @@ function htmlTitulo(){
 function htmlPtMeta(){
   if (!temConteudo(pr)) return '<span class="pt-chip">O tempo começa a contar quando você escrever o caso</span>';
   const entrou = new Date(pr.criado).toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
-  return `<span class="pt-chip">Entrada ${entrou} · há ${tempoTxt(Date.now() - pr.criado)}</span>${reavChip(pr)}<span class="pt-chip ${restante(pr) < 30 * 60000 ? 'pouco' : ''}">Exclui em ${tempoTxt(restante(pr))}</span>`;
+  return `<span class="pt-chip">Entrada ${entrou} · há ${tempoTxt(Date.now() - pr.criado)}</span>${confChip(pr)}${reavChip(pr)}<span class="pt-chip ${restante(pr) < 30 * 60000 ? 'pouco' : ''}">Exclui em ${tempoTxt(restante(pr))}</span>`;
 }
 /* ---------- painel lateral do caso: trilho escuro em sanfona (abre um por vez) ---------- */
 const ICO_P = {
@@ -3907,7 +3996,8 @@ function renderSbPac(){
   el.innerHTML = `<div class="sb-h"><span>Pacientes no PS</span><span class="n">${lista.length}</span></div>`
     + lista.map(c => {
       const r = reavAte(c) - Date.now(), on = sec === 'prontuario' && pr === c, pa = pendAbertas(c).length, d = c.decisao && DESTINOS[c.decisao.destino];
-      return `<button class="sb-p ${on ? 'on' : ''}" data-pcaso="${esc(c.id)}"><span class="sb-p1"><b>${esc(c.iniciais || 'Sem iniciais')}</b><span class="sb-t ${r <= 0 ? 'atras' : r < 15 * 60000 ? 'perto' : ''}">${r <= 0 ? 'atrasada' : hh(r)}</span></span><span class="sb-p2">${d ? `<i class="dot nv-${d.nv}"></i>` : ''}${esc(hdResumo(c))}${pa ? ` · ${pa} pend.` : ''}</span></button>`;
+      const cf = precisaConferir(c);
+      return `<button class="sb-p ${on ? 'on' : ''} ${cf ? 'conferir' : ''}" data-pcaso="${esc(c.id)}" ${cf ? `title="${tempoTxt(esperaConf(c))} sem conferir: exames e medicação"` : ''}><span class="sb-p1"><b>${esc(c.iniciais || 'Sem iniciais')}</b><span class="sb-t ${r <= 0 ? 'atras' : r < 15 * 60000 ? 'perto' : ''}">${r <= 0 ? 'atrasada' : hh(r)}</span></span><span class="sb-p2">${d ? `<i class="dot nv-${d.nv}"></i>` : ''}${esc(hdResumo(c))}${pa ? ` · ${pa} pend.` : ''}</span>${cf ? `<span class="sb-conf">⚑ Conferir exames e medicação · ${tempoTxt(esperaConf(c))}</span>` : ''}</button>`;
     }).join('')
     + `<button class="sb-novo" id="sbNovo">+ Novo paciente</button>`
     + (lista.length ? `<button class="sb-pass" data-passagem="1">Passagem de plantão</button>` : '');
@@ -3928,7 +4018,7 @@ function renderPbar(){
   el.hidden = false;
   el.innerHTML = `<span class="pbar-t">Pacientes no PS</span>` + lista.map(c => {
     const r = reavAte(c) - Date.now(), pa = pendAbertas(c).length, d = c.decisao && DESTINOS[c.decisao.destino];
-    return `<button class="pchip ${r <= 0 ? 'atras' : r < 15 * 60000 ? 'perto' : ''}" data-pcaso="${esc(c.id)}" title="${esc(hdResumo(c))}">${d ? `<i class="dot nv-${d.nv}"></i>` : ''}<b>${esc(c.iniciais || 'Sem iniciais')}</b><span>${r <= 0 ? '⏰ atrasada' : '⏱ ' + tempoTxt(r)}</span>${pa ? `<span class="pn">⏳${pa}</span>` : ''}</button>`;
+    return `<button class="pchip ${r <= 0 ? 'atras' : precisaConferir(c) ? 'conferir' : r < 15 * 60000 ? 'perto' : ''}" data-pcaso="${esc(c.id)}" title="${esc(hdResumo(c))}">${d ? `<i class="dot nv-${d.nv}"></i>` : ''}<b>${esc(c.iniciais || 'Sem iniciais')}</b><span>${r <= 0 ? '⏰ atrasada' : precisaConferir(c) ? '⚑ conferir' : '⏱ ' + tempoTxt(r)}</span>${pa ? `<span class="pn">⏳${pa}</span>` : ''}</button>`;
   }).join('') + `<button class="mini" data-passagem="1">🔁 Passagem de plantão</button>`;
   measure();
 }
