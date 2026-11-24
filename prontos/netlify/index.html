@@ -1667,7 +1667,6 @@ function sugestaoPs(it){
   if (!base.length) return '';
   let i = 0; const linhas = base.map(k => `${++i}) ${RXB[k]}`);
   let t = 'USO ENDOVENOSO\n\n' + linhas.join('\n\n');
-  if (intensa) t += `\n\nSe dor intensa:\n\n${++i}) ${RXB.ondanT}\n\n${++i}) ${RXB.tram}`;
   return t;
 }
 function rxPartes(it, ai){
@@ -1745,11 +1744,17 @@ document.addEventListener('click', e => {
 });
 document.addEventListener('keydown', e => { if (e.target.id === 'pRxAdapt' && e.key === 'Enter') { e.preventDefault(); adaptarRx(); } });
 document.addEventListener('input', e => { if (e.target.id === 'pRxAdapt') pr.rxPedido = e.target.value; });
+document.addEventListener('change', e => {
+  if (e.target.id !== 'pIni' || !pr.out) return;
+  pr.iniciais = e.target.value.trim(); pr.out.caixa1 = comIdentificacao(pr.out.caixa1, pr);
+  if (pr.ed.pC1 != null) pr.ed.pC1 = comIdentificacao(pr.ed.pC1, pr);
+  const el = $('#pC1'); if (el) el.value = pr.ed.pC1 ?? pr.out.caixa1; guardarCaso(pr);
+});
 async function gerarPsIA(it, alvoId){
   const el = document.getElementById(alvoId); if (!el) return;
   toast('Gerando prescrição do PS…');
   const prompt = `Você é médico emergencista no Brasil. Escreva apenas a prescrição para ser feita NO PRONTO-SOCORRO (medicações endovenosas, intramusculares ou inalatórias de ação imediata) para: ${it.nome}${it.cid ? ' (CID ' + it.cid + ')' : ''}.
-Regras: só medicamentos registrados no Brasil, com nome comercial entre colchetes; anti-inflamatório preferido = Cetorolaco 30 mg/mL [Toragesic®] EV; inclua uma opção "Se dor intensa:" quando houver dor; não inclua receita para casa; texto puro neste formato:
+Regras: só medicamentos registrados no Brasil, com nome comercial entre colchetes; anti-inflamatório preferido = Cetorolaco 30 mg/mL [Toragesic®] EV; não inclua opioides nem opção "Se dor intensa", a menos que o médico peça; não inclua receita para casa; texto puro neste formato:
 USO ENDOVENOSO
 
 1) Medicamento apresentação [Marca®] ------------------------ quantidade
@@ -2030,7 +2035,7 @@ function openCfg(){
     <b>Backup</b>
     <p class="hint" style="margin:0">Copie o texto abaixo e guarde em um arquivo ou no Notion. Para restaurar, cole um backup no campo e toque em Restaurar backup.</p>
     <textarea id="bk" spellcheck="false"></textarea>
-    <div class="edit-actions"><button class="btn" id="bkGen">Gerar backup</button><button class="btn" id="bkCopy">Copiar backup</button><button class="btn" id="bkLoad">Restaurar backup</button><label class="btn" style="display:inline-flex;align-items:center">Abrir arquivo<input type="file" id="bkFile" accept=".json,.txt" hidden></label></div>
+    <div class="edit-actions"><button class="btn" id="bkGen">Gerar backup</button><button class="btn" id="bkCopy">Copiar backup</button><button class="btn" id="bkBaixar">Baixar arquivo</button><button class="btn" id="bkLoad">Restaurar backup</button><label class="btn" style="display:inline-flex;align-items:center">Abrir arquivo<input type="file" id="bkFile" accept=".json,.txt" hidden></label></div>
     ${apagados.length ? `<hr style="border:0;border-top:1px solid var(--line);width:100%"><b>Itens excluídos</b><div style="display:grid;gap:6px">${apagados.map(([k,v]) => `<div class="edit-actions" style="align-items:center"><span style="flex:1;min-width:0">${esc(v.nome||k)} <span class="hint">(${SECS[v.secao]?.label||''})</span></span><button class="mini" data-undel="${esc(k)}">Recuperar</button></div>`).join('')}</div>` : ''}
     <div class="status" id="stInfo"></div>
     <div class="edit-actions" style="justify-content:flex-end"><button class="btn" data-close-btn>Fechar</button></div>`);
@@ -2062,6 +2067,7 @@ function openCfg(){
     if (b.id === 'bkGen') { $('#bk').value = backup(); toast('Backup gerado'); }
     if (b.id === 'bkCopy') { const v = $('#bk').value || backup(); $('#bk').value = v; copy(v, 'Backup copiado'); }
     if (b.id === 'bkLoad') restoreBackup($('#bk').value);
+    if (b.id === 'bkBaixar') { const v = $('#bk').value || backup(); $('#bk').value = v; const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([v], {type:'application/json'})); a.download = `plantao-backup-${new Date().toISOString().slice(0,10)}.json`; document.body.appendChild(a); a.click(); a.remove(); toast('Arquivo do backup baixado'); }
     if (b.dataset.undel) { store.write('itens', b.dataset.undel, null); rebuild(); renderAll(); closeModal(); toast('Item recuperado'); }
   });
   $('#bkFile').addEventListener('change', e => { const f = e.target.files[0]; if (!f) return; const r = new FileReader(); r.onload = () => { $('#bk').value = r.result; toast('Arquivo carregado. Toque em Restaurar backup.'); }; r.readAsText(f); });
@@ -2443,14 +2449,35 @@ const FORMATO = `FORMATO DE SAÍDA (obrigatório neste aplicativo; substitui qua
 Responda SOMENTE com um objeto JSON válido, sem nenhum texto antes ou depois e sem crases, com exatamente estas chaves:
 "caixa1": cabeçalho, identificação, história da doença atual, comorbidades, medicações de uso contínuo e alergias. Se houver MODELO DE HDA DESTE MÉDICO abaixo, siga a estrutura, a ordem e o jeito de escrever dele, preenchendo com os dados do caso: trecho do modelo sem dado correspondente é omitido (nunca deixe "____"); as negativas de sinais de alarme do modelo só entram se o médico negou alarmes (ex.: "sem sinais de alarme", "nega …"); e "Comorbidades/Medicações/Alergias: Nega" do modelo só entram se ele negou;
 "caixa2": exame físico. EXAMES COMPLEMENTARES: só escreva "# Exames complementares" (ou linhas com ">>") se o médico escreveu RESULTADOS de exames nos dados do caso; os valores de exemplo das instruções (Hb 12,5, Leuco 10.900 etc.) são só formato e NUNCA podem aparecer; exame pedido e ainda sem resultado não entra aqui. Personalize o exame para a queixa: além do modelo padrão, inclua o exame dirigido ao sistema da queixa principal (ex.: cefaleia → pupilas, rigidez de nuca, sinais meníngeos, pares cranianos, força, coordenação e marcha; dor abdominal → descompressão brusca, Murphy, Rovsing, Giordano; dor de garganta → oroscopia e linfonodos cervicais; lombalgia → palpação, Lasègue, força e reflexos; ITU → Giordano; trauma → segmento acometido, pulsos e sensibilidade distais). Para o que não foi informado, descreva como normal; o que for alteração informada, descreva como informado; nunca invente alteração;
-"caixa3": hipóteses diagnósticas, raciocinadas a partir do que o médico escreveu. Depois delas, se o quadro tiver escore validado aplicável (CURB-65 e qSOFA em pneumonia/infecção; HEART, Wells e PERC em dor torácica/dispneia/TEP; Wells TVP; Centor/McIsaac em faringite; ABCD2 em AIT; Alvarado em dor em FID; CHA2DS2-VASc em FA; Glasgow em TCE/rebaixamento), escreva "# Escores:" e, em uma linha cada, o nome, o resultado e os critérios que pontuaram, calculados SÓ com dados informados (ex.: "- CURB-65: 2 (idade ≥ 65 anos, FR ≥ 30); ureia não informada."). Se nenhum se aplicar ou não houver dados, omita a seção;
+"caixa3": hipóteses diagnósticas, raciocinadas a partir do que o médico escreveu. Seja PRECISO: (1) a hipótese principal primeiro, a mais provável e o mais específica que os dados permitem (ex.: "Pielonefrite aguda à direita", não "Infecção urinária"; "Cólica nefrética por litíase ureteral", não "Dor abdominal"), com uma justificativa curta pelos achados; (2) depois, no máximo 3 diferenciais, priorizando os graves que precisam ser afastados neste quadro; (3) "(?)" quando houver incerteza; (4) não liste hipóteses incompatíveis com os dados nem genéricas demais. Depois delas, se o quadro tiver escore validado aplicável (CURB-65 e qSOFA em pneumonia/infecção; HEART, Wells e PERC em dor torácica/dispneia/TEP; Wells TVP; Centor/McIsaac em faringite; ABCD2 em AIT; Alvarado em dor em FID; CHA2DS2-VASc em FA; Glasgow em TCE/rebaixamento), escreva "# Escores:" e, em uma linha cada, o nome, o resultado e os critérios que pontuaram, calculados SÓ com dados informados (ex.: "- CURB-65: 2 (idade ≥ 65 anos, FR ≥ 30); ureia não informada."). Se nenhum se aplicar ou não houver dados, omita a seção;
 "caixa4": condutas, sucintas e específicas, em lista com "-". Parta do que o médico escreveu e DETALHE cada item: "sintomáticos" vira os medicamentos e doses da prescrição do PS informada (ex.: "- Dipirona 1 g EV e ondansetrona 4 mg EV."); "exames lab"/"laboratório" vira os exames pertinentes ao quadro, nomeados (ex.: "- Hemograma, PCR, ureia, creatinina, sódio e potássio."); "imagem"/"exame de imagem" vira o exame específico indicado ao quadro (ex.: "- TC de crânio sem contraste."). Não crie condutas de outro tipo que ele não escreveu, com uma exceção: se houver algo importante para a segurança (indicação de internação ou UTI, escore alto, sinal de alarme presente, exame alterado relevante), acrescente uma linha direta começando por "- Atenção:". Se ele não informou nenhuma conduta, escreva "- Prescrevo medicações conforme prescrição.";
 "gravidade": objeto {"destino": "alta" | "observacao" | "internacao" | "uti", "motivo": "uma frase curta com os dados que justificam"}, a sua avaliação do destino mais seguro pelo quadro, sinais vitais, escores e exames informados;
 "perguntas": lista com até 5 perguntas curtas e objetivas que o médico ainda deveria fazer ao paciente porque a resposta pode mudar o risco, o diagnóstico ou a conduta neste caso (sinais de alarme não perguntados, fatores de risco, anticoagulante, gestação, imunossupressão, viagem, trauma etc.). Só o que é relevante para a segurança deste quadro e ainda não foi informado; [] se a HDA já for suficiente ou o caso for simples;
-"receita": o id da receita indicada abaixo, ou null.
+"receita": o id da receita indicada abaixo, ou null;
+"receita_variacao": o nome da variação da receita (quando houver), ou null.
 Dentro de cada caixa, texto puro pronto para prontuário eletrônico: títulos no formato "# Título:", listas apenas com "-", quebras de linha como \n, sem negrito nem outro Markdown.
 SEM LACUNAS: nunca escreva "[completar]", "completar", "___", colchetes ou campos para preencher. Use as informações fornecidas para construir o texto e o raciocínio; o que não foi informado é omitido ou escrito de forma neutra (ex.: comorbidades não informadas → "- Nega" só se o médico negou; senão omita a linha). Nunca invente dados.`;
+/* ---------- nome e idade na identificação da caixa 1: preenchidos no navegador, nunca enviados à IA ---------- */
+function idadeDasNotas(t){ const m = String(t || '').match(/\b(\d{1,3})\s*(?:a|anos|ano)\b/i); return m && +m[1] > 0 && +m[1] < 120 ? m[1] + ' anos' : ''; }
+function comIdentificacao(txt, c){
+  let t = String(txt || ''); const nome = (c.iniciais || '').trim(), idade = idadeDasNotas(c.notas);
+  if (!t.trim() || !nome) return t;
+  const reNome = /^([ \t#>*-]*Nome\s*:)[^\n]*$/im;
+  if (reNome.test(t)) t = t.replace(reNome, (m, r) => `${r} ${nome}`);
+  else {
+    const L = t.split('\n'); let k = L.findIndex(l => /IDENTIFICA/i.test(l));
+    if (k < 0) { k = L.findIndex(l => /Hist[óo]ria da doen/i.test(l)); L.splice(Math.max(k, 0), 0, '##IDENTIFICAÇÃO:', 'Nome: ' + nome, ...(idade ? ['Idade: ' + idade] : []), ''); }
+    else L.splice(k + 1, 0, 'Nome: ' + nome);
+    t = L.join('\n');
+  }
+  if (idade) t = t.replace(/^([ \t#>*-]*Idade\s*:)[ \t]*$/im, (m, r) => `${r} ${idade}`);
+  return t;
+}
 /* ---------- HDA da biblioteca como estrutura do prontuário ---------- */
+// catálogo inteiro das receitas para a IA escolher pelo diagnóstico (não só por palavras das anotações)
+function catalogoReceitas(){
+  return state.data.prescricoes.itens.map(x => `${x.id}: ${x.nome}${x.cid ? ' · ' + x.cid : ''}${x.abas.length > 1 ? ' · [' + x.abas.map(a => a.nome).join(' | ') + ']' : ''}`).join('\n');
+}
 function hdaModelos(rxIt, notas){
   const H = state.data.hdas.itens, out = [];
   const add = id => { const h = id && H.find(x => x.id === id); if (h && !out.includes(h) && h.id !== HDA_GERAL) out.push(h); };
@@ -2841,7 +2868,7 @@ async function gerar(ajuste){
   const rxIt = prRx();
   let ctx = iaBase() + '\n\n' + FORMATO + '\n\nLocal do atendimento: ' + loc + '\n';
   if (rxIt) ctx += `\nReceita escolhida pelo médico: ${rxIt.nome}${rxIt.cid ? ' (CID ' + rxIt.cid + ')' : ''}. Texto da prescrição, para manter as condutas coerentes (não copie a receita nas condutas):\n${prRxText(rxIt)}\n\nNo campo "receita", devolva "${rxIt.id}".\n`;
-  else { const cand = rxCandidatas(pr.notas); ctx += '\nReceitas disponíveis (id: nome). No campo "receita", devolva o id da mais compatível com o caso, ou null se nenhuma servir:\n' + cand.map(x => x.id + ': ' + x.nome).join('\n') + '\n'; }
+  else ctx += '\nRECEITAS DO MÉDICO (id: nome · CID · variações). No campo "receita", devolva o id da receita que trata a HIPÓTESE PRINCIPAL da caixa 3 (confira o CID e o nome); null se nenhuma tratar. No campo "receita_variacao", devolva o nome exato da variação mais adequada à gravidade e ao perfil do paciente, ou null:\n' + catalogoReceitas() + '\n';
   const hdas = hdaModelos(rxIt, pr.notas);
   if (hdas.length) ctx += `\nMODELO${hdas.length > 1 ? 'S' : ''} DE HDA DESTE MÉDICO (${hdas.length > 1 ? 'use o mais compatível com o caso; ' : ''}estrutura para a caixa 1; "____" são lugares de dado, nunca os copie):\n` + hdas.map(h => `--- ${h.nome}\n${render(h.abas[0]?.texto || '')}`).join('\n') + '\n';
   ctx += '\nDADOS DO CASO INFORMADOS PELO MÉDICO:\n' + pr.notas.trim();
@@ -2865,13 +2892,16 @@ async function gerar(ajuste){
     toast(`Prontuário pronto em ${seg(performance.now() - t0)} s${t1 ? ` · começou a aparecer em ${seg(t1 - t0)} s` : ''}`);
     const j = parseJsonLoose(r.text);
     pr.out = {caixa1:String(j.caixa1||''), caixa2:String(j.caixa2||''), caixa3:String(j.caixa3||''), caixa4:String(j.caixa4||'')};
+    pr.out.caixa1 = comIdentificacao(pr.out.caixa1, pr);
     if (!temResultadoExame(pr)) { const a = pr.out.caixa1 + pr.out.caixa2; pr.out.caixa1 = semExamesInventados(pr.out.caixa1); pr.out.caixa2 = semExamesInventados(pr.out.caixa2); if (a !== pr.out.caixa1 + pr.out.caixa2) toast('A IA escreveu exames que você não informou: removidos.', 4000); }
     pr.perguntas = Array.isArray(j.perguntas) ? j.perguntas.map(q => String(q || '').trim()).filter(Boolean).slice(0, 5).map(q => ({q, r:'', ign:false})) : [];
     pr.gravidade = j.gravidade && typeof j.gravidade === 'object' ? {destino: String(j.gravidade.destino || '').toLowerCase(), motivo: String(j.gravidade.motivo || '')} : null;
     if (pr.gravidade?.destino === 'uti') pr.perfil = 'uti';
     pr.msgs = [...msgs, {role:'assistant', content:r.text}];
     pr.ed = {pRxPs: pr.ed.pRxPs, pRxCasa: pr.ed.pRxCasa}; pr.jus = null; pr.ajuste = '';
-    if (!rxIt && j.receita && state.data.prescricoes.itens.some(x => x.id === j.receita)) { pr.rxId = j.receita; pr.rxAba = 0; pr.rxAuto = true; delete pr.ed.pRxPs; delete pr.ed.pRxCasa; }
+    const rxSug = !rxIt && j.receita && state.data.prescricoes.itens.find(x => x.id === j.receita);
+    if (rxSug) { const va = norm(String(j.receita_variacao || '')); const ia = va ? rxSug.abas.findIndex(a => norm(a.nome) === va || norm(a.nome).includes(va) || va.includes(norm(a.nome))) : -1;
+      pr.rxId = rxSug.id; pr.rxAba = ia > 0 ? ia : 0; pr.rxAuto = true; delete pr.ed.pRxPs; delete pr.ed.pRxCasa; }
   } catch (e) { acabou = true; if (quadro) cancelAnimationFrame(quadro); pr.erro = erroIA(e); if (mostrou) { pr.out = outAntes; pr.ed = edVelho; } }
   pr.loading = false; guardarCaso(pr); if (pr === window.__prAtual()) renderPront(); else toast('Prontuário de ' + (pr.iniciais || 'outro paciente') + ' pronto');
 }
@@ -3351,12 +3381,12 @@ REGRAS CLÍNICAS
 - Doses usuais de adulto. Use SOMENTE medicamentos registrados e comercializados no Brasil (ANVISA), com nome genérico + concentração + marca brasileira entre colchetes. Não use marcas ou apresentações que só existem fora do Brasil.
 - PREFERÊNCIAS DO MÉDICO: anti-inflamatório oral = Naproxeno 500 ou 550 mg [Flanax®] OU Cetorolaco 10 mg sublingual [Toragesic®]; anti-inflamatório no PS = Cetorolaco 30 mg/mL [Toragesic®] EV ou IM. Corticoide nasal = Furoato de mometasona 50 mcg/jato [Nasonex®] OU Azelastina + Fluticasona [Dymista®]. Não use outros AINEs nem outros corticoides nasais, salvo pedido do médico.
 - Respeite alergias, peso, idade, gestação, função renal e comorbidades informados. Se algo informado contraindica uma droga, troque por alternativa e explique em "obs".
-- Quando o médico fizer PEDIDOS explícitos, prescreva exatamente o que foi pedido, completando dose, diluição, via, velocidade e posologia. Não acrescente outras drogas além do pedido, exceto a opção de dor intensa (ver abaixo) e antiemético quando houver opioide.
+- Quando o médico fizer PEDIDOS explícitos, prescreva exatamente o que foi pedido, completando dose, diluição, via, velocidade e posologia. Não acrescente outras drogas além do pedido, exceto antiemético quando houver opioide.
 - Quando vier apenas SINTOMAS, escolha o tratamento sintomático e/ou etiológico mais adequado e conservador. Não presuma diagnóstico que dependa de exame; se um antibiótico depender de confirmação, diga isso em "obs".
 - Prefira as escolhas dos MODELOS DO MÉDICO enviados abaixo, quando se aplicarem ao caso.
 - Não invente dados do paciente.
 
-OPÇÃO PARA DOR AGUDA INTENSA (sempre que houver dor no quadro ou quando o médico pedir analgesia)
+OPÇÃO PARA DOR AGUDA INTENSA (SOMENTE quando o médico pedir opioide ou analgesia para dor intensa)
 - Na receita de alta, inclua um bloco "Se dor intensa, apesar da dipirona (escolher uma opção):" com Paracetamol 500 mg + Codeína 30 mg [Tylex® 30 mg] OU Tramadol 50 mg [Tramal®], por até 3 dias, e a orientação de receituário de controle especial (2 vias).
 - Na prescrição do PS, inclua tramadol EV diluído (e morfina titulada se dor refratária) com ondansetrona.
 - Não use esses opioides se houver contraindicação informada.
@@ -3373,7 +3403,7 @@ const GX_FMT = `SAÍDA: responda SOMENTE com um objeto JSON válido, sem texto a
 "alta": receita de alta (string; "" se não foi pedida);
 "obs": observações curtas para o médico (alergias consideradas, ajustes, alertas, o que confirmar); "" se nada.
 Quebras de linha como \\n.`;
-const novoGx = () => ({texto:'', modo:'ambos', dor: lsGet('plantaorx:gxdor', true), out:null, msgs:null, ed:{}, loading:false, erro:null, ajuste:'', salvar:false});
+const novoGx = () => ({texto:'', modo:'ambos', dor: false, out:null, msgs:null, ed:{}, loading:false, erro:null, ajuste:'', salvar:false});
 let gx = novoGx();
 /* só as receitas mais prováveis vão no pedido (prompt menor = resposta mais rápida) */
 function rxCandidatas(texto, n = 25){
@@ -3403,7 +3433,6 @@ function renderGerar(){
         <option value="ambos" ${gx.modo==='ambos'?'selected':''}>Prescrição no PS + receita de alta</option>
         <option value="ps" ${gx.modo==='ps'?'selected':''}>Só prescrição no PS</option>
         <option value="alta" ${gx.modo==='alta'?'selected':''}>Só receita de alta</option></select></div>
-      <div class="field"><label>&nbsp;</label><label class="toggle" style="color:var(--fg);height:42px"><input type="checkbox" id="gxDor" ${gx.dor?'checked':''}><span class="sw"></span>Sempre incluir opção para dor aguda intensa (PACO / tramadol)</label></div>
     </div>
     <textarea class="pnotas" id="gxTexto" placeholder="Sintomas: dor lombar intensa há 2 dias, sem irradiação, 70 kg, alérgico a dipirona&#10;ou pedidos: dipirona EV, cetoprofeno EV, tramadol EV, ondansetrona; na alta ciclobenzaprina e naproxeno">${esc(gx.texto)}</textarea>
     <div class="paper-foot">
@@ -3435,8 +3464,8 @@ async function gerarRx(ajuste){
   const refs = gxRefs(gx.texto);
   const pedir = {ambos:'Gere a prescrição no PS E a receita de alta.', ps:'Gere SOMENTE a prescrição no PS ("alta" vazio).', alta:'Gere SOMENTE a receita de alta ("ps" vazio).'}[gx.modo];
   let ctx = (store.meta.iaRx?.instrucoes ?? GX_PROMPT) + estiloTxt() + '\n\n' + GX_FMT + '\n\n' + pedir + '\n'
-    + (gx.dor ? 'Inclua SEMPRE a opção para dor aguda intensa descrita acima, salvo contraindicação.\n' : 'Não inclua opioides, a menos que o médico peça.\n');
-  const exemplo = state.data.prescricoes.itens.find(x => x.id === 'dor-aguda-intensa');
+    + 'Não inclua opioides (paracetamol + codeína, tramadol, morfina) nem bloco "Se dor intensa", a menos que o médico peça.\n';
+  const exemplo = /tramadol|code[ií]na|paco|tylex|opio|morfina|dor intensa/i.test(gx.texto) && state.data.prescricoes.itens.find(x => x.id === 'dor-aguda-intensa');
   if (exemplo) ctx += '\nEXEMPLO DE FORMATO DO MÉDICO (Dor aguda intensa):\n' + exemplo.abas.map(a => '[' + a.nome + ']\n' + a.texto).join('\n\n') + '\n';
   if (refs.length) ctx += '\nMODELOS DO MÉDICO PARA QUADROS PARECIDOS (prefira estas escolhas quando se aplicarem):\n' + refs.map(r => '### ' + r.nome + '\n' + r.abas.map(a => '[' + a.nome + ']\n' + a.texto).join('\n\n')).join('\n\n') + '\n';
   ctx += '\nSOLICITAÇÃO DO MÉDICO:\n' + gx.texto.trim();
