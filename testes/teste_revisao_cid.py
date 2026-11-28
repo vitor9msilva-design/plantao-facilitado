@@ -9,6 +9,9 @@ from playwright.sync_api import sync_playwright
 AQUI = pathlib.Path(__file__).resolve().parent
 SITE = AQUI / '_site_teste_revisao.html'
 src = (AQUI.parent / 'prontos' / 'netlify' / 'index.html').read_text(encoding='utf-8')
+# simula uma revisão de doses NOVA (data posterior): todos os apontamentos voltam a ficar pendentes,
+# mesmo que o médico já tenha revisado tudo no conteúdo base
+src = src.replace('"data": "2026-11-20"', '"data": "2099-01-01"', 1)
 SITE.write_text(re.sub(r"url:'https://[^']+'", "url:'http://127.0.0.1:9'", src), encoding='utf-8')
 COFRE = 'abcdefghijklmnopqrstuvwxyz1234'
 DB = {}
@@ -48,10 +51,8 @@ with sync_playwright() as p:
     ok('apontamento crítico' in pg.locator('.toast').inner_text(), 'copiar receita com apontamento crítico avisa')
     ok(pg.locator('[data-apcorr]').count() >= 2, 'cada apontamento tem "Confirmar mudança"')
     pg.locator('.apont-acts [data-apcorr]').click(); pg.wait_for_timeout(400)
-    salvo = [v['item'] for (c, k), v in DB.items() if c == 'itens' and v.get('item', {}).get('nome') == primeiro]
-    txt = ' '.join(a['texto'] for a in salvo[0]['abas']) if salvo else ''
-    ok('1 mg/kg' in txt and 'Aplicar 80 mg, via subcutânea, dose única' not in txt and 'junto com alimentos.\n\nOU\nUSO SUBCUTÂNEO' in txt, '"Confirmar todas as mudanças" aplica as correções na receita')
-    ok(pg.locator('.ap-feita').count() >= 2 or pg.locator('details.apont.ok').count() == 1, 'apontamentos aparecem como aplicados')
+    ok('editada por você' in pg.locator('.toast').inner_text() and not [1 for (c, k), v in DB.items() if c == 'itens' and v.get('item', {}).get('nome') == primeiro],
+       'receita já corrigida à mão: "Confirmar" não mexe e avisa')
     pg.click('[data-act="rev-ok"]'); pg.wait_for_timeout(400)
     segundo = pg.locator('#detail h2').inner_text()
     ok(segundo != primeiro, f'"Revisado, próximo" avança ({primeiro} → {segundo})')
@@ -66,6 +67,14 @@ with sync_playwright() as p:
     pg.click('[data-cat="todas"]'); pg.fill('#q', primeiro); pg.wait_for_timeout(300); pg.locator('#list .card').first.click(); pg.wait_for_timeout(300)
     ok(pg.locator('.badge.ok').count() == 1, 'selo "Revisado em" aparece')
     ok(pg.locator('details.apont.ok').count() == 1, 'apontamentos ficam recolhidos depois de conferidos')
+    pg.fill('#q', ''); pg.wait_for_timeout(200)
+
+    pg.fill('#q', 'Crise aguda de gota'); pg.wait_for_timeout(300); pg.locator('#list .card').first.click(); pg.wait_for_timeout(300)
+    pg.locator('[data-apcorr]').first.click(); pg.wait_for_timeout(400)
+    salvo = [v['item'] for (c, k), v in DB.items() if c == 'itens' and v.get('item', {}).get('nome') == 'Crise aguda de gota']
+    txt = ' '.join(a['texto'] for a in salvo[0]['abas']) if salvo else ''
+    ok('Colchicina 0,5 mg' in txt and 'Colchicina 0,6 mg' not in txt, '"Confirmar mudança" aplica a correção na receita (colchicina)')
+    ok(pg.locator('.ap-feita').count() == 1 or pg.locator('details.apont.ok').count() == 1, 'apontamento aparece como aplicado')
     pg.fill('#q', ''); pg.wait_for_timeout(200)
 
     print('2) CID na aba Documentos')
