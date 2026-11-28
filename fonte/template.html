@@ -2057,17 +2057,39 @@ setInterval(expirar, 30000);
 addEventListener('storage', e => { if (e.key === CASOS_KEY) { const cur = pr.id; carregarCasos(); const c = casos.find(x => x.id === cur); if (c && c !== pr && !pr.loading) { pr = c; if (sec === 'prontuario' && !document.activeElement?.closest?.('#pront')) renderPront(); } renderCasos(); } });
 const hoje = () => new Date().toISOString().slice(0,10);
 function localHoje(){ const l = lsGet('plantaorx:local', null); return l && l.dia === hoje() ? l.local : ''; }
+/* regras do médico de 28/11/2026: valem por cima da seção de condutas e de JUSTIFICATIVAS das instruções salvas */
+const REGRA_CONDUTAS = `CONDUTAS (substitui qualquer regra anterior de condutas):
+- Lista ENUMERADA ("1.", "2.", "3." …), uma conduta por linha, escrita em PRIMEIRA PESSOA (Prescrevo, Solicito, Mantenho, Oriento, Reavaliarei).
+- Cada item traz, na mesma linha, uma justificativa técnica breve (no máximo uma linha), natural, como raciocínio clínico real. Evite linguagem robótica ou padronizada demais.
+- Seja geral: "Solicito exames laboratoriais para …" e "Solicito exame de imagem para …", SEM especificar quais exames; "Prescrevo analgesia/sintomáticos para …" sem listar remédios e doses.
+- Parta do que o médico escreveu nos dados do caso; não crie condutas de outro tipo.
+- O ÚLTIMO item é sempre: oriento o paciente sobre os próximos passos no PS e reavaliarei após as medicações e os resultados (adapte com naturalidade ao caso).
+- Nada de notas, observações, subtítulos ou texto solto entre os itens: só os itens enumerados.`;
+const REGRA_JUSTIFICATIVAS = `JUSTIFICATIVAS (substitui a seção JUSTIFICATIVAS das instruções): técnicas, objetivas, compatíveis com auditoria, operadoras de saúde e regulação, sem repetir a HDA.
+1. Exames complementares: justificar a necessidade do exame com base no quadro clínico, na hipótese diagnóstica, no diagnóstico diferencial e no impacto esperado do resultado na conduta.
+2. Internação em apartamento: justificar a necessidade de tratamento hospitalar, monitorização, medicação ou suporte intravenoso, investigação complementar e ausência de critérios para alta.
+3. Internação em UTI: justificar a gravidade clínica, o risco de deterioração e a necessidade de monitorização contínua e suporte intensivo.
+4. Alta hospitalar: justificar estabilidade clínica, melhora evolutiva e ausência de critérios para internação, com possibilidade de seguimento ambulatorial.
+Nunca use o termo "UBS": escreva "seguimento ambulatorial" ou "atenção primária".`;
+// remove o termo UBS de textos gerados e deixa a conduta só com os itens enumerados
+const semUBS = t => String(t || '').replace(/\b(na|à|a|pela|para a|da)\s+UBS\b/gi, (m, p1) => /pela/i.test(p1) ? 'pela atenção primária' : /da/i.test(p1) ? 'da atenção primária' : 'na atenção primária').replace(/\bUBS\b/g, 'atenção primária');
+function condutasLimpas(t){
+  const L = String(t || '').split('\n'); const out = [];
+  for (const l of L) { const x = l.trim(); if (!x) continue; if (/^#/.test(x) || /^\d+[.)]\s/.test(x)) out.push(x); }
+  return out.some(l => /^\d+[.)]/.test(l)) ? out.join('\n') : String(t || '').trim();
+}
 const FORMATO = `FORMATO DE SAÍDA (obrigatório neste aplicativo; substitui qualquer instrução anterior sobre blocos de código):
 Responda SOMENTE com um objeto JSON válido, sem nenhum texto antes ou depois e sem crases, com exatamente estas chaves:
 "caixa1": cabeçalho, identificação, história da doença atual, comorbidades, medicações de uso contínuo e alergias. Se houver MODELO DE HDA DESTE MÉDICO abaixo, siga a estrutura, a ordem e o jeito de escrever dele, preenchendo com os dados do caso: trecho do modelo sem dado correspondente é omitido (nunca deixe "____"); as negativas de sinais de alarme do modelo só entram se o médico negou alarmes (ex.: "sem sinais de alarme", "nega …"); e "Comorbidades/Medicações/Alergias: Nega" do modelo só entram se ele negou;
 "caixa2": exame físico. EXAMES COMPLEMENTARES: só escreva "# Exames complementares" (ou linhas com ">>") se o médico escreveu RESULTADOS de exames nos dados do caso; os valores de exemplo das instruções (Hb 12,5, Leuco 10.900 etc.) são só formato e NUNCA podem aparecer; exame pedido e ainda sem resultado não entra aqui. Personalize o exame para a queixa: além do modelo padrão, inclua o exame dirigido ao sistema da queixa principal (ex.: cefaleia → pupilas, rigidez de nuca, sinais meníngeos, pares cranianos, força, coordenação e marcha; dor abdominal → descompressão brusca, Murphy, Rovsing, Giordano; dor de garganta → oroscopia e linfonodos cervicais; lombalgia → palpação, Lasègue, força e reflexos; ITU → Giordano; trauma → segmento acometido, pulsos e sensibilidade distais). Para o que não foi informado, descreva como normal; o que for alteração informada, descreva como informado; nunca invente alteração;
 "caixa3": hipóteses diagnósticas, raciocinadas a partir do que o médico escreveu. Seja PRECISO: (1) a hipótese principal primeiro, a mais provável e o mais específica que os dados permitem (ex.: "Pielonefrite aguda à direita", não "Infecção urinária"; "Cólica nefrética por litíase ureteral", não "Dor abdominal"), com uma justificativa curta pelos achados; (2) depois, no máximo 3 diferenciais, priorizando os graves que precisam ser afastados neste quadro; (3) "(?)" quando houver incerteza; (4) não liste hipóteses incompatíveis com os dados nem genéricas demais. Depois delas, se o quadro tiver escore validado aplicável (CURB-65 e qSOFA em pneumonia/infecção; HEART, Wells e PERC em dor torácica/dispneia/TEP; Wells TVP; Centor/McIsaac em faringite; ABCD2 em AIT; Alvarado em dor em FID; CHA2DS2-VASc em FA; Glasgow em TCE/rebaixamento), escreva "# Escores:" e, em uma linha cada, o nome, o resultado e os critérios que pontuaram, calculados SÓ com dados informados (ex.: "- CURB-65: 2 (idade ≥ 65 anos, FR ≥ 30); ureia não informada."). Se nenhum se aplicar ou não houver dados, omita a seção;
-"caixa4": condutas, sucintas e específicas, em lista com "-". Parta do que o médico escreveu e DETALHE cada item: "sintomáticos" vira os medicamentos e doses da prescrição do PS informada (ex.: "- Dipirona 1 g EV e ondansetrona 4 mg EV."); "exames lab"/"laboratório" vira os exames pertinentes ao quadro, nomeados (ex.: "- Hemograma, PCR, ureia, creatinina, sódio e potássio."); "imagem"/"exame de imagem" vira o exame específico indicado ao quadro (ex.: "- TC de crânio sem contraste."). Não crie condutas de outro tipo que ele não escreveu, com uma exceção: se houver algo importante para a segurança (indicação de internação ou UTI, escore alto, sinal de alarme presente, exame alterado relevante), acrescente uma linha direta começando por "- Atenção:". Se ele não informou nenhuma conduta, escreva "- Prescrevo medicações conforme prescrição.";
+"caixa4": "# CONDUTAS:" seguido das condutas no padrão da regra CONDUTAS abaixo. Se o médico não informou nenhuma conduta, escreva "1. Prescrevo medicações conforme prescrição, para controle dos sintomas." e o item final de orientação e reavaliação;
 "gravidade": objeto {"destino": "alta" | "observacao" | "internacao" | "uti", "motivo": "uma frase curta com os dados que justificam"}, a sua avaliação do destino mais seguro pelo quadro, sinais vitais, escores e exames informados;
-"perguntas": lista com até 5 perguntas curtas e objetivas que o médico ainda deveria fazer ao paciente porque a resposta pode mudar o risco, o diagnóstico ou a conduta neste caso (sinais de alarme não perguntados, fatores de risco, anticoagulante, gestação, imunossupressão, viagem, trauma etc.). Só o que é relevante para a segurança deste quadro e ainda não foi informado; [] se a HDA já for suficiente ou o caso for simples;
+"perguntas": se o destino em "gravidade" for "alta", devolva []; nos demais destinos, lista com até 5 perguntas curtas e objetivas que o médico ainda deveria fazer ao paciente porque a resposta pode mudar o risco, o diagnóstico ou a conduta neste caso (sinais de alarme não perguntados, fatores de risco, anticoagulante, gestação, imunossupressão, viagem, trauma etc.). Só o que é relevante para a segurança deste quadro e ainda não foi informado; [] se a HDA já for suficiente ou o caso for simples;
 "receita": o id da receita indicada abaixo, ou null;
 "receita_variacao": o nome da variação da receita (quando houver), ou null.
 Dentro de cada caixa, texto puro pronto para prontuário eletrônico: títulos no formato "# Título:", listas apenas com "-", quebras de linha como \n, sem negrito nem outro Markdown.
+${REGRA_CONDUTAS}
 SEM LACUNAS: nunca escreva "[completar]", "completar", "___", colchetes ou campos para preencher. Use as informações fornecidas para construir o texto e o raciocínio; o que não foi informado é omitido ou escrito de forma neutra (ex.: comorbidades não informadas → "- Nega" só se o médico negou; senão omita a linha). Nunca invente dados.`;
 /* ---------- nome e idade na identificação da caixa 1: preenchidos no navegador, nunca enviados à IA ---------- */
 function idadeDasNotas(t){ const m = String(t || '').match(/\b(\d{1,3})\s*(?:a|anos|ano)\b/i); return m && +m[1] > 0 && +m[1] < 120 ? m[1] + ' anos' : ''; }
@@ -2120,7 +2142,7 @@ function semExamesInventados(t){
 }
 /* ---------- perguntas sugeridas para enriquecer a HDA (opcionais; a HDA continua copiável como está) ---------- */
 function htmlHdaComPerguntas(caixa){
-  const ps = (pr.perguntas || []).map((p, i) => ({...p, i})).filter(p => !p.ign);
+  const ps = pr.gravidade?.destino === 'alta' ? [] : (pr.perguntas || []).map((p, i) => ({...p, i})).filter(p => !p.ign);
   if (!ps.length || !aiSample) return caixa;
   const resp = ps.some(p => p.r.trim());
   return `<div class="hda-duo">${caixa}<aside class="perg-card" aria-label="Perguntas sugeridas">
@@ -2505,6 +2527,7 @@ async function gerar(ajuste){
     const j = parseJsonLoose(r.text);
     pr.out = {caixa1:String(j.caixa1||''), caixa2:String(j.caixa2||''), caixa3:String(j.caixa3||''), caixa4:String(j.caixa4||'')};
     pr.out.caixa1 = comIdentificacao(pr.out.caixa1, pr);
+    pr.out.caixa4 = condutasLimpas(semUBS(pr.out.caixa4));
     if (!temResultadoExame(pr)) { const a = pr.out.caixa1 + pr.out.caixa2; pr.out.caixa1 = semExamesInventados(pr.out.caixa1); pr.out.caixa2 = semExamesInventados(pr.out.caixa2); if (a !== pr.out.caixa1 + pr.out.caixa2) toast('A IA escreveu exames que você não informou: removidos.', 4000); }
     pr.perguntas = Array.isArray(j.perguntas) ? j.perguntas.map(q => String(q || '').trim()).filter(Boolean).slice(0, 5).map(q => ({q, r:'', ign:false})) : [];
     pr.gravidade = j.gravidade && typeof j.gravidade === 'object' ? {destino: String(j.gravidade.destino || '').toLowerCase(), motivo: String(j.gravidade.motivo || '')} : null;
@@ -2692,7 +2715,7 @@ ${bruto}`;
   c.loading = false; guardarCaso(c); if (c === window.__prAtual()) renderPront();
 }
 const I_CAMPOS = [['cab','Cabeçalho e identificação','iCab',130], ['hda','História da Doença Atual','iHda',220], ['exame_fisico','Exame físico','iEf',120], ['exames','Exames complementares','iEx',120],
-  ['evolucao','Evolução no PS / reavaliação','iEvo',120], ['hd','Hipóteses diagnósticas','iHd',80], ['justificativa','Justificativa da internação','iJus',140], ['plano','Plano e solicitações','iPl',110]];
+  ['evolucao','Evolução no PS / reavaliação','iEvo',120], ['hd','Hipóteses diagnósticas','iHd',80], ['justificativa','Justificativa da internação','iJus',140], ['plano','Condutas','iPl',130]];
 function htmlInternacao(){
   const temHda = !!(prontTexto() || (pr.out) || (pr.notas || '').trim());
   const temEx = !!(pr.exames?.out?.trim() || pr.exames?.lab?.trim() || pr.exames?.img?.trim());
@@ -2729,20 +2752,23 @@ async function gerarInternacao(){
 TAREFA: monte o PEDIDO DE INTERNAÇÃO em ${uti ? 'UTI' : 'enfermaria (apartamento)'}${c.iEsp ? ', aos cuidados de ' + c.iEsp : ''}, usando SOMENTE as informações abaixo.
 Responda SOMENTE com um objeto JSON válido, sem texto fora dele e sem crases, com as chaves:
 "idade": idade do paciente como informada (ex.: "55 anos"), ou "" se não informada;
-"hda": HDA objetiva e completa (texto corrido, no estilo das instruções), seguida de comorbidades, medicações de uso contínuo e alergias, se informadas;
+"hda": HDA completa e encorpada, em texto corrido e fluido (no estilo das instruções), com início, evolução, sintomas associados, negativas pertinentes informadas e fatores de risco, seguida de comorbidades, medicações de uso contínuo e alergias, se informadas;
 "exame_fisico": exame físico da admissão no PS;
 "exames": exames complementares organizados (">> Exames laboratoriais: ..." com valores separados por " | " e alterados marcados com *; ">> Exames de imagem:" com "- exame: achados"); "" se não houver;
-"evolucao": evolução no PS em ordem cronológica, curta, com o tratamento feito e a resposta (reavaliações);
-"hd": hipóteses diagnósticas enumeradas;
-"justificativa": justificativa da internação (${uti ? 'item 3' : 'item 2'} da seção JUSTIFICATIVAS), até 5 linhas, citando os dados objetivos que a sustentam (exames alterados, falha de resposta ao tratamento no PS, gravidade, necessidade de terapia endovenosa ou monitorização);
-"plano": plano inicial e solicitações, em lista com "-" (internação, especialidade, exames pendentes, pareceres).
+"evolucao": evolução no PS em texto corrido e cronológico: o que foi feito, a resposta às medicações, as reavaliações e os resultados dos exames que mudaram o raciocínio;
+"hd": hipóteses diagnósticas REESCRITAS À LUZ DOS EXAMES E DA EVOLUÇÃO (refine, confirme ou descarte as do prontuário com os resultados), enumeradas, a principal primeiro e o mais específica possível, cada uma com uma justificativa breve pelos achados;
+"justificativa": justificativa da internação (${uti ? 'item 3' : 'item 2'} da regra JUSTIFICATIVAS), em texto corrido e encorpado de 5 a 8 linhas, citando os dados objetivos que a sustentam (exames alterados, falha de resposta ao tratamento no PS, gravidade, necessidade de terapia endovenosa ou monitorização);
+"plano": condutas da internação no padrão da regra CONDUTAS abaixo (enumeradas, em primeira pessoa, com justificativa breve), incluindo a internação, a especialidade, exames e pareceres de forma geral; o último item é a orientação ao paciente e à família sobre a internação e os próximos passos.
+${REGRA_CONDUTAS}
+${REGRA_JUSTIFICATIVAS}
 Não invente dados e não deixe lacunas: nunca escreva "[completar]", "___" ou colchetes; o que não foi informado é omitido ou redigido de forma neutra. Texto puro dentro de cada campo, quebras de linha como \\n.
 ${c.iObs ? '\nINFORMAÇÃO EXTRA DO MÉDICO: ' + c.iObs + '\n' : ''}
 ${contextoCaso(c)}${rxDoPront() ? '\n\nPRESCRIÇÃO EM USO NO PS:\n' + rxDoPront() : ''}`;
   c.loading = 'Montando o pedido de internação…'; c.erro = null; renderPront();
   try {
     const r = await aiSample(ctx, {modelTier:'default', cache:false}); const j = parseJsonLoose(r.text);
-    c.intern = Object.fromEntries(I_CAMPOS.map(([k]) => [k, String(j[k] || '').trim()]));
+    c.intern = Object.fromEntries(I_CAMPOS.map(([k]) => [k, semUBS(String(j[k] || '').trim())]));
+    c.intern.plano = condutasLimpas(c.intern.plano);
     const local = (c.local ?? localHoje() ?? '').trim();
     c.intern.cab = `===========================================\nDEPARTAMENTO DE EMERGÊNCIA - ${local || '____'}\nPEDIDO DE INTERNAÇÃO\n===========================================\n\n##IDENTIFICAÇÃO:\nNome: ${(c.iniciais || '').trim()}\nIdade: ${String(j.idade || '').trim()}`;
     for (const [, , id] of I_CAMPOS) delete c.ed[id];
@@ -2756,21 +2782,21 @@ async function gerarJus(tipo){
   let pedido;
   if (tipo === 'imagem') {
     pr.jusExame = ($('#pJusExame')?.value || '').trim(); pr.jusExameUsado = pr.jusExame;
-    pedido = `Elabore SOMENTE a justificativa de solicitação de exame de imagem${pr.jusExame ? ': ' + pr.jusExame : ' (o exame de imagem indicado nas condutas)'}. Escreva UMA ÚNICA FRASE, neste formato: "[Exame] para afastar/investigar [hipóteses], em paciente com [resumo clínico essencial do caso]." Exemplo: "TC de crânio sem contraste para afastar causas secundárias de cefaleia, como hemorragia intracraniana, lesão expansiva ou hidrocefalia, em paciente com cefaleia de 5 dias de evolução, com piora hoje e acompanhada de vômitos." NÃO diga como o resultado muda a conduta, NÃO descreva o que fazer se o exame vier normal ou alterado, sem introdução. Não justifique exames laboratoriais. Esta regra vale mesmo que as instruções acima digam outra coisa.`;
+    pedido = `Elabore SOMENTE a justificativa do exame complementar${pr.jusExame ? ': ' + pr.jusExame : ' indicado nas condutas'}, seguindo o item 1 da regra JUSTIFICATIVAS: em 2 a 4 linhas de texto corrido, justifique a necessidade do exame pelo quadro clínico, pela hipótese diagnóstica e pelo diagnóstico diferencial, e diga o impacto esperado do resultado na conduta.`;
   } else if (tipo === 'internacao') {
     const uti = pr.perfil === 'uti'; pr.jusPerfilUsado = pr.perfil;
     pedido = uti
-      ? 'Elabore a justificativa de internação em UTI, seguindo o item 3 da seção JUSTIFICATIVAS: gravidade clínica, risco de deterioração e necessidade de monitorização contínua e suporte intensivo.'
-      : 'Elabore a justificativa de internação em apartamento (enfermaria), seguindo o item 2 da seção JUSTIFICATIVAS: necessidade de tratamento hospitalar, monitorização, medicação ou suporte intravenoso, investigação complementar e ausência de critérios para alta.';
+      ? 'Elabore a justificativa de internação em UTI, seguindo o item 3 da regra JUSTIFICATIVAS, em texto corrido e encorpado (5 a 8 linhas), citando os dados objetivos do caso que mostram a gravidade e o risco de deterioração.'
+      : 'Elabore a justificativa de internação em apartamento (enfermaria), seguindo o item 2 da regra JUSTIFICATIVAS, em texto corrido e encorpado (5 a 8 linhas), citando os dados objetivos do caso.';
   } else {
-    pedido = 'Elabore a justificativa de alta hospitalar seguindo exatamente o padrão do item 4 da seção JUSTIFICATIVAS, em no máximo 4 linhas: comece com um pequeno resumo do caso (motivo da admissão), diga que o paciente evoluiu com melhora clínica após a abordagem e os exames, e preencha os colchetes com os dados do prontuário.';
+    pedido = 'Elabore a justificativa de alta hospitalar seguindo o item 4 da regra JUSTIFICATIVAS, em texto corrido, FLUIDO e ENCORPADO (6 a 9 linhas), como um médico experiente escreveria: (1) resumo do motivo da admissão e do quadro inicial; (2) o que foi feito no PS (medicações e exames realizados, com os resultados que foram informados); (3) a resposta ao tratamento e a reavaliação, com melhora evolutiva; (4) estabilidade clínica e hemodinâmica (com os sinais vitais, se informados) e ausência de sinais de alarme e de critérios para internação; (5) alta com prescrição, orientações e sinais de retorno, com seguimento ambulatorial. Não use listas nem colchetes.';
   }
-  const ctx = iaBase() + `\n\n${pedido} Use apenas as informações do prontuário abaixo. Responda somente com o texto da justificativa, sem títulos, sem Markdown.\n\nPRONTUÁRIO:\n${pront}`;
+  const ctx = iaBase() + `\n\n${REGRA_JUSTIFICATIVAS}\n\n${pedido} Use apenas as informações do prontuário abaixo. Responda somente com o texto da justificativa, sem títulos, sem Markdown.\n\nPRONTUÁRIO:\n${pront}`;
   pr.loading = 'Escrevendo a justificativa…'; pr.erro = null; renderPront();
   const c = pr, jusAntes = pr.jus; let primeiro = true;
   const onText = ({text}) => { c.jus = text; delete c.ed.pJ; if (c !== window.__prAtual()) return;
     const el = document.getElementById('pJ'); if (primeiro || !el) { primeiro = false; c.loading = 'Escrevendo…'; renderPront(); } else el.value = text; };
-  try { const r = await aiSample(ctx, {modelTier:'default', cache:false, onText}); pr.jus = r.text.trim(); delete pr.ed.pJ; }
+  try { const r = await aiSample(ctx, {modelTier:'default', cache:false, onText}); pr.jus = semUBS(r.text.trim()); delete pr.ed.pJ; }
   catch (e) { pr.erro = erroIA(e); pr.jus = jusAntes; }
   pr.loading = false; guardarCaso(pr); if (pr === window.__prAtual()) renderPront(); else toast('Justificativa de ' + (pr.iniciais || 'outro paciente') + ' pronta');
 }
