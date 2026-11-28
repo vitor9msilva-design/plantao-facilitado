@@ -19,7 +19,7 @@ RESPOSTA = {
     "caixa1": "===\nDEPARTAMENTO DE EMERGÊNCIA - HSLT\n===\n\n#História da Doença Atual:\nPaciente masculino, 72 anos, com tosse produtiva há 3 dias, febre e dispneia.",
     "caixa2": "# Exame físico:\n- REG, taquipneico.\n- AR: estertores em base direita.\n\n# Exames complementares:\n>> Exames laboratoriais: Hb 12,5 | Leuco 10.900 | Plaq 521.000\n>> Exames de imagem:\n- TC de Crânio: sem alterações",
     "caixa3": "# Hipóteses diagnósticas:\n1. Pneumonia comunitária.\n\n# Escores:\n- CURB-65: 3 (idade ≥ 65 anos, FR ≥ 30, PAS < 90); ureia não informada.",
-    "caixa4": "# CONDUTAS:\n- Dipirona 1 g EV.\n- Hemograma, PCR, ureia, creatinina, sódio e potássio.\n- Radiografia de tórax PA e perfil.\n- Atenção: CURB-65 = 3, indicação de internação.",
+    "caixa4": "# CONDUTAS:\n1. Prescrevo analgesia e antiemético EV para controle dos sintomas.\nObs.: se piorar, considerar opioide.\n2. Solicito exames laboratoriais para avaliar resposta inflamatória e função renal.\n3. Oriento o paciente sobre os próximos passos no PS e seguimento na UBS, e reavaliarei após as medicações e os resultados.",
     "perguntas": ["Faz uso de anticoagulante ou antiagregante?", "Teve episódio de confusão mental ou queda?"],
     "gravidade": {"destino": "internacao", "motivo": "CURB-65 = 3 com hipotensão e taquipneia em idoso."},
     "receita": None}
@@ -78,10 +78,19 @@ with sync_playwright() as p:
     pg.click('#pGo'); pg.wait_for_timeout(1500)
     pr = next((t for t in pedidos if '"caixa1"' in t), '')
     ok('MODELO DE HDA DESTE MÉDICO' in pr, 'pedido à IA leva o modelo de HDA da biblioteca')
-    ok('NUNCA podem aparecer' in pr and '"gravidade"' in pr and '# Escores:' in pr and 'DETALHE cada item' in pr, 'pedido leva as regras novas (exames, escores, conduta, gravidade)')
+    ok('NUNCA podem aparecer' in pr and '"gravidade"' in pr and '# Escores:' in pr and 'PRIMEIRA PESSOA' in pr, 'pedido leva as regras novas (exames, escores, conduta, gravidade)')
+    ok('receita_variacao' in pr and 'tratamento-de-manutencao-mart' in pr and 'HIPÓTESE PRINCIPAL' in pr, 'IA recebe o catálogo inteiro das receitas para escolher pelo diagnóstico')
+    ok('hipótese principal primeiro' in pr, 'regra de hipóteses mais precisas vai no pedido')
+    ok('J.S.' not in pr, 'nome do paciente não vai para a IA')
+    ok('Nome: J.S.' in pg.input_value('#pC1'), 'nome do paciente entra na identificação da HDA')
+    ok('Idade: 72 anos' in pg.input_value('#pC1'), 'idade das anotações entra na identificação')
     c2 = pg.input_value('#pC2')
     ok('Hb 12,5' not in c2 and 'Exames complementares' not in c2 and 'estertores' in c2, 'exames que o médico não informou são removidos (exame físico fica)')
     ok('CURB-65: 3' in pg.input_value('#pC3'), 'escore calculado aparece nas hipóteses')
+    c4 = pg.input_value('#pC4')
+    ok('PRIMEIRA PESSOA' in pr and 'SEM especificar quais exames' in pr, 'pedido leva o novo padrão de condutas')
+    ok('Obs.:' not in c4 and c4.count('\n') == 3 and c4.startswith('# CONDUTAS:'), 'condutas ficam só com os itens enumerados (nota solta removida)')
+    ok('UBS' not in c4 and 'atenção primária' in c4, 'termo UBS é retirado')
     ok(pg.locator('.alerta-int').count() == 1, 'aviso de indicação de internação aparece sozinho')
     ok(pg.locator('.ri-btn[data-painel="internacao"] .ri-dot.alerta').count() == 1, 'ícone de internação ganha alerta')
     ok(pg.locator('.perg-card .perg').count() == 2, 'perguntas sugeridas aparecem ao lado da HDA')
@@ -97,9 +106,20 @@ with sync_playwright() as p:
     pg.click('.alerta-int [data-painel="internacao"]'); pg.wait_for_timeout(300)
     ok(pg.locator('.flyout#painel-internacao [data-intern]').count() == 1, '"Pedido de internação" abre a janela certa')
 
+    n0 = len(pedidos); pg.click('[data-jus="alta"]'); pg.wait_for_timeout(1200)
+    pj = next((t for t in pedidos[n0:] if 'justificativa de alta' in t), '')
+    ok('FLUIDO e ENCORPADO' in pj and 'Alta hospitalar: justificar estabilidade clínica' in pj, 'justificativa de alta pede texto fluido e encorpado, com a regra nova')
+    if pg.locator('.flyout#painel-internacao').count() == 0: pg.click('.ri-btn[data-painel="internacao"]'); pg.wait_for_timeout(300)
+    n0 = len(pedidos); pg.click('[data-intern]'); pg.wait_for_timeout(1200)
+    pi = next((t for t in pedidos[n0:] if 'PEDIDO DE INTERNAÇÃO' in t), '')
+    ok('REESCRITAS À LUZ DOS EXAMES' in pi and 'PRIMEIRA PESSOA' in pi and 'encorpado' in pi, 'pedido de internação: HD reescritas após exames, condutas no padrão novo')
+    pg.keyboard.press('Escape')
+
     print('3) Com exames informados, a trava não apaga')
+    RESPOSTA['gravidade'] = {"destino": "alta", "motivo": "Estável, melhora após medicação."}
     pg.fill('#pNotas', 'masc 72a tosse 3d, Hb 12,5 Leuco 10900, rx torax com consolidacao em base D'); pg.click('#pGo'); pg.wait_for_timeout(1500)
     ok('Hb 12,5' in pg.input_value('#pC2'), 'exames informados permanecem')
+    ok(pg.locator('.perg-card').count() == 0, 'paciente de alta: sem perguntas ao lado da HDA')
 
     print('4) Adaptar a receita por texto')
     rx = pg.locator('#pRx option', has_text='Síndrome gripal').first.get_attribute('value')

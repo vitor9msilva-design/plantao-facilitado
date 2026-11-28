@@ -21,6 +21,7 @@ O **Plantão Facilitado** é um app web de pronto-socorro (prescrições, docume
 | `supabase/banco/criar-banco.sql` | Tabela `docs` e funções `ler` e `gravar` |
 | `historico/funcao-versao-claude-17nov.ts` | Versão anterior da função, só para consulta |
 | `fonte/revisao.json` | Apontamentos da revisão de doses (crítico/atenção + sugestão), por id de prescrição. O build injeta em `__REVISAO__`; alimentam a fila "Revisar um por um". Relatório legível em `revisao/` |
+| `fonte/importar_backup.py` | Grava no base.json as correções que o médico fez no site, a partir do backup (Configurações → Backup → Baixar arquivo). Sem `--gravar` só mostra o que mudaria |
 | `FLUXO-DE-TRABALHO.md` | Como mudanças e revisões de conteúdo acontecem (branch → PR com prévia → "pode publicar" → main) |
 | `testes/` | `teste_ponta_a_ponta.py` (IA: Playwright, Gemini simulado e a função em Deno; veja `testes/COMO-RODAR.md`) `teste_revisao_cid.py` (revisão e CID), `teste_prontuario_painel.py` (prontuário e painel) e `teste_aviso_conferir.py` (aviso de 1 h); os três últimos não precisam de IA |
 
@@ -48,10 +49,15 @@ armazenamento (`store`: Claude db / Supabase RPC / local) · estado · filtro ·
 
 ## Regras do dono (não quebre)
 - Português do Brasil e medicamentos **registrados no Brasil**, com nome comercial. AINE preferido: **Toragesic (cetorolaco) ou naproxeno**. Corticoide nasal: **Nasonex ou Dymista**.
-- Toda receita gerada tem uma opção de **dor aguda intensa** (paracetamol + codeína ou tramadol).
+- **Opioides só quando o médico pedir (regra de 24/11/2026):** a chave "PACO / tramadol" saiu do Gerar receita, e nenhuma receita gerada inclui paracetamol + codeína, tramadol ou bloco "Se dor intensa" por conta própria.
 - **Não alterar doses** das receitas dele sem aprovação. O que for escrito pela IA ou por você entra como rascunho, para revisão.
-- **Conduta (caixa 4), regra de 20/11/2026:** sucinta, partindo do que o médico escreveu, mas **detalhando** cada item ("sintomáticos" → remédios e doses da prescrição do PS; "exames lab" → exames nomeados; "imagem" → exame específico). Não criar condutas de outro tipo; a única exceção é uma linha "- Atenção: …" quando houver algo importante para a segurança (internação/UTI, escore alto, sinal de alarme, exame alterado).
+- **Condutas, regra de 28/11/2026 (`REGRA_CONDUTAS`, no prontuário e no pedido de internação):** enumeradas, em primeira pessoa, uma por linha, cada uma com justificativa técnica breve (até uma linha), naturais, como raciocínio clínico real. Gerais: "Solicito exames laboratoriais/de imagem" sem especificar quais. O último item: orientei o paciente sobre os próximos passos no PS e o reavaliarei. Sem notas soltas: `condutasLimpas()` mantém só os itens enumerados.
+- **Justificativas (`REGRA_JUSTIFICATIVAS`, 28/11/2026):** exames (quadro, hipótese, diferencial e impacto na conduta, 2 a 4 linhas); internação em apartamento e em UTI (5 a 8 linhas); alta fluida e encorpada (6 a 9 linhas: admissão, o que foi feito, resposta, estabilidade, orientações e seguimento ambulatorial). **Nunca usar "UBS"** (`semUBS()` troca por "atenção primária").
+- **Pedido de internação:** HDA e evolução encorpadas, e hipóteses reescritas à luz dos exames e da evolução.
+- **Perguntas para a HDA só quando o paciente não é de alta** (destino ≠ alta).
 - **Exames no prontuário:** só entram resultados que o médico informou. Além da regra no `FORMATO`, a função `semExamesInventados()` apaga a seção de exames quando `temResultadoExame()` não acha resultado nas anotações, nos exames ou na evolução.
+- **Nome e idade na HDA:** o nome digitado em "Iniciais do paciente" e a idade das anotações entram na identificação da caixa 1 (`comIdentificacao`), preenchidos no navegador. O nome nunca vai para a IA.
+- **Hipóteses e receita automática:** a caixa 3 pede a hipótese principal específica primeiro e até 3 diferenciais graves. A IA recebe o catálogo inteiro das receitas (`catalogoReceitas`: id, nome, CID e variações), escolhe a que trata a hipótese principal e devolve `receita_variacao`.
 - **Estrutura da HDA:** o prontuário usa o modelo da biblioteca de HDAs (`hdaModelos()`: o da receita escolhida; senão, até 3 parecidos com as anotações).
 - **Escores e destino:** a IA calcula os escores aplicáveis (caixa 3, "# Escores:") só com dados informados e devolve `gravidade` ({destino, motivo}); internação/UTI mostram o aviso no topo e um alerta no painel lateral.
 - **Painel lateral do prontuário (`renderSide`, `painelItens`):** no computador (> 860 px), uma faixa escura de 56 px só com ícones. O nome aparece ao passar o mouse; o clique abre a seção numa janela ao lado (`.flyout`), que fecha com o mesmo ícone, outro ícone, × ou Esc. No celular continua a lista em sanfona. Seções: pendências, reavaliação, resultados de exames, escores, decisão, pedido de internação e discussão. O pedido de exame de imagem fica na coluna central. Só uma aberta por vez (`ui.painel`).
@@ -59,7 +65,7 @@ armazenamento (`store`: Claude db / Supabase RPC / local) · estado · filtro ·
 - **Aviso de 1 hora (conferir exames e medicação):** cada paciente fica amarelo 1 h após a entrada ou a última conferência (`CONF_INT`, `confAte`, `precisaConferir`). "Conferido", "Reavaliar em 2h" e registrar uma reavaliação zeram a contagem. Aparece na barra lateral, no cabeçalho do paciente, na barra de pacientes e no título da aba; o aviso na tela sai uma vez por ciclo.
 - **Adaptar a receita no prontuário:** campo acima de "No PS / Para casa" (`adaptarRx`). O médico escreve "adicione X; retire Y"; a IA mexe só nisso e copia dose e formato das linhas da biblioteca (`linhasDaBiblioteca`). Selo "ajustada pela IA · confira" e botão "Desfazer".
 - **Nunca deixar lacunas** ("[completar]", "___", colchetes) em textos gerados.
-- Justificativa de imagem em **uma frase**. O pedido de internação tem cabeçalho fixo (veja `gerarInternacao`).
+- O pedido de internação tem cabeçalho fixo (veja `gerarInternacao`).
 - **Privacidade:**
   - Pacientes só com **iniciais**, que nunca vão para a IA. São apagados 4 h após a entrada ou na alta.
   - Nunca colocar no código o cofre, a chave do Gemini ou qualquer outro segredo.
